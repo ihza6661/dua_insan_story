@@ -36,4 +36,23 @@ class CheckoutController extends Controller
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }
+
+    public function initiateFinalPayment(Request $request, Order $order, CheckoutService $checkoutService): JsonResponse
+    {
+        try {
+            // Ensure the user is authorized to pay for this order
+            if ($request->user()->id !== $order->customer_id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $snapToken = $checkoutService->initiateFinalPayment($order);
+
+            return response()->json([
+                'message' => 'Final payment initiated. Please complete the payment.',
+                'snap_token' => $snapToken,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
 }

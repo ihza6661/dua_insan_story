@@ -57,6 +57,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/checkout', [CheckoutController::class, 'store']);
+        Route::post('/orders/{order}/pay-final', [CheckoutController::class, 'initiateFinalPayment']);
 
         // Rute untuk mengelola profil pengguna
         Route::get('/user', [ProfileController::class, 'show']);
@@ -91,3 +92,5 @@ Route::prefix('v1/admin')
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     });
+
+Route::post('/midtrans/webhook', [WebhookController::class, 'midtrans']);
