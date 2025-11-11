@@ -26,9 +26,11 @@ class MidtransService
 
     public function createTransactionToken(Order $order, Payment $payment)
     {
+        $orderId = $payment->transaction_id;
+
         $params = [
             'transaction_details' => [
-                'order_id' => $payment->id . '-' . time(), // Use a unique ID for each transaction attempt
+                'order_id' => $orderId,
                 'gross_amount' => $payment->amount,
             ],
             'customer_details' => [

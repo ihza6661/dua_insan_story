@@ -28,14 +28,9 @@ class Order extends Model
         return $this->belongsTo(User::class, 'customer_id');
     }
 
-    public function items()
+    public function payments()
     {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    public function payment(): HasOne
-    {
-        return $this->hasOne(Payment::class);
+        return $this->hasMany(Payment::class);
     }
 
     public function invitationDetail(): HasOne
@@ -51,5 +46,10 @@ class Order extends Model
     public function billingAddress(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'billing_address_id');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }

@@ -77,4 +77,20 @@ class RajaOngkirService
 
         return $this->request('post', 'calculate/domestic-cost', $data);
     }
+
+    public function getCityByPostalCode(string $postalCode)
+    {
+        // This is a conceptual implementation. RajaOngkir's public API might not directly support this.
+        // This assumes an endpoint or a way to resolve postal code to city_id.
+        // A more robust solution might involve a local database of postal codes to city IDs.
+        $cities = $this->getCities();
+        if (isset($cities['rajaongkir']['results'])) {
+            foreach ($cities['rajaongkir']['results'] as $city) {
+                if ($city['postal_code'] == $postalCode) {
+                    return $city;
+                }
+            }
+        }
+        return null;
+    }
 }

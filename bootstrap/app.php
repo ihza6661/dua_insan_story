@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'auth.optional' => \App\Http\Middleware\AuthOptional::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'v1/webhook/midtrans',
+            'midtrans/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

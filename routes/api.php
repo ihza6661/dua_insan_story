@@ -67,6 +67,7 @@ Route::prefix('v1')->group(function () {
         // Rute untuk mengelola pesanan pengguna
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);
+        Route::post('/orders/{order}/retry-payment', [OrderController::class, 'retryPayment']);
     });
 });
 

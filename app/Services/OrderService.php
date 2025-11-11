@@ -21,6 +21,7 @@ class OrderService
             'items.product.variants',
             'items.variant.options',
             'invitationDetail',
+            'payments',
         ])->latest()->get();
     }
 
@@ -38,6 +39,7 @@ class OrderService
             'items.product.variants',
             'items.variant.options',
             'invitationDetail',
+            'payments',
         ])->where('id', $orderId)->first();
     }
 }

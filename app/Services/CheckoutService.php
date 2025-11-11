@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutService
 {
@@ -22,8 +23,8 @@ class CheckoutService
 
     public function processCheckout(Request $request): Order
     {
-        $user = $request->user();
-        $cart = $user->cart;
+        $user = $request->user(); // Can be null for guests
+        $cart = $user ? $user->cart : session('cart'); // Adjust to get cart from session for guests
 
         if (!$cart || $cart->items->isEmpty()) {
             throw new \Exception('Keranjang belanja Anda kosong.');
@@ -31,7 +32,7 @@ class CheckoutService
 
         return DB::transaction(function () use ($request, $user, $cart) {
             $validated = $request->validated();
-            $paymentOption = $validated['payment_option'] ?? 'full'; // 'dp' or 'full'
+            $paymentOption = $validated['payment_option'] ?? 'full';
 
             $photoPath = null;
             if ($request->hasFile('prewedding_photo')) {
@@ -45,20 +46,18 @@ class CheckoutService
             $courier = $validated['courier'] ?? null;
             $totalAmount = $cartTotal + $shippingCost;
 
-            // 1. Create the Order
             $order = Order::create([
                 'customer_id' => $user->id,
                 'order_number' => 'INV-' . Str::uuid(),
                 'total_amount' => $totalAmount,
                 'shipping_address' => $validated['shipping_address'],
-                'order_status' => 'Pending Payment', // Updated status from migration
+                'order_status' => 'Pending Payment',
                 'shipping_cost' => $shippingCost,
                 'shipping_service' => $shippingService,
                 'courier' => $courier,
                 'payment_gateway' => 'midtrans',
             ]);
 
-            // 2. Create the Invitation Detail
             $order->invitationDetail()->create([
                 'bride_full_name' => $validated['bride_full_name'],
                 'groom_full_name' => $validated['groom_full_name'],
@@ -76,7 +75,6 @@ class CheckoutService
                 'prewedding_photo_path' => $photoPath,
             ]);
 
-            // 3. Create Order Items from Cart
             foreach ($cart->items as $cartItem) {
                 $orderItem = $order->items()->create([
                     'product_id' => $cartItem->product_id,
@@ -96,11 +94,14 @@ class CheckoutService
                 }
             }
 
-            // 4. Handle Payment
             $this->handleInitialPayment($order, $paymentOption);
 
-            // 5. Clear the cart
-            $cart->items()->delete();
+            if ($user) {
+                $cart->items()->delete();
+            } else {
+                // Clear session cart for guest
+                session()->forget('cart');
+            }
 
             return $order;
         });
@@ -128,6 +129,7 @@ class CheckoutService
 
         // Create the payment record
         $payment = $order->payments()->create([
+            'transaction_id' => Str::uuid()->toString(),
             'amount' => $paymentAmount,
             'status' => 'pending',
             'payment_type' => $paymentType,
@@ -167,6 +169,7 @@ class CheckoutService
 
         // Create the final payment record
         $finalPayment = $order->payments()->create([
+            'transaction_id' => Str::uuid()->toString(),
             'amount' => $remainingAmount,
             'status' => 'pending',
             'payment_type' => 'final',
@@ -180,27 +183,31 @@ class CheckoutService
 
         return $snapToken;
     }
-
     public function calculateShippingCost(array $data)
     {
-        $user = Auth::user();
-        $originCityId = $user->city_id;
-
-        if (!$originCityId) {
-            throw new \Exception('Alamat pengguna tidak lengkap. Mohon perbarui profil Anda.');
+        if (!isset($data['postal_code'])) {
+            throw new \Exception('Postal code is required.');
         }
 
-        $response = $this->rajaOngkirService->getCost(
-            $originCityId,
-            $data['destination'],
-            $data['weight'],
-            $data['courier']
-        );
+        $destinationCity = $this->rajaOngkirService->getCityByPostalCode($data['postal_code']);
 
-        if (isset($response['rajaongkir']['status']['code']) && $response['rajaongkir']['status']['code'] == 200) {
-            return $response['rajaongkir'];
-        } else {
-            throw new \Exception('Gagal menghitung biaya pengiriman. Silakan coba lagi.');
+        if (!$destinationCity) {
+            throw new \Exception('Could not find city for the given postal code.');
+        }
+
+        $originCityId = config('rajaongkir.origin_city_id'); // Assuming you have a default origin city ID in your config
+        $destinationCityId = $destinationCity['city_id'];
+        $weight = $data['weight'] ?? 1000; // Default to 1kg
+        $courier = $data['courier'];
+
+        return $this->rajaOngkirService->getCost($originCityId, $destinationCityId, $weight, $courier);
+    }
+
+    public function clearCart(\App\Models\User $user): void
+    {
+        $cart = $user->cart;
+        if ($cart) {
+            $cart->items()->delete();
         }
     }
 }
