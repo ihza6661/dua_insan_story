@@ -52,4 +52,15 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function getRemainingBalanceAttribute()
+    {
+        $paid = $this->payments()->where('status', 'paid')->sum('amount');
+        return $this->total_amount - $paid;
+    }
+
+    public function getAmountPaidAttribute()
+    {
+        return $this->payments()->where('status', 'paid')->sum('amount');
+    }
 }

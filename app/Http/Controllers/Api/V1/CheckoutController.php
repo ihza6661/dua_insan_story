@@ -8,6 +8,7 @@ use App\Http\Resources\OrderResource;
 use App\Services\CheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\Order;
 
 class CheckoutController extends Controller
 {
