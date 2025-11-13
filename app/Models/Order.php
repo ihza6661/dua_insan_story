@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int|null $customer_id
+ * @property string $order_number
+ * @property float $total_amount
+ * @property string|null $shipping_address
+ * @property string|null $order_status
+ * @property string|null $snap_token
+ */
 class Order extends Model
 {
     use HasFactory;

@@ -20,7 +20,7 @@ class CheckoutController extends Controller
 
             return response()->json([
                 'message' => 'Pesanan Anda berhasil dibuat dan menunggu pembayaran.',
-                'data' => new OrderResource($order),
+                'data' => OrderResource::make($order),
                 'snap_token' => $order->snap_token,
             ], 201);
         } catch (\Exception $e) {
