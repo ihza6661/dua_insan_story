@@ -21,6 +21,7 @@ class UpdateRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'base_price' => ['sometimes', 'required', 'integer', 'min:0'],
+            'weight' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'min_order_quantity' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'is_active' => ['sometimes', 'nullable', 'boolean'],
         ];

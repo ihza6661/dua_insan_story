@@ -60,10 +60,17 @@ class CartService
                 }
                 $unitPrice += $addOn->price;
                 $customizationDetails['add_ons'][] = [
+                    'id' => $addOn->id,
                     'name' => $addOn->name,
                     'price' => $addOn->price,
+                    'weight' => $addOn->pivot->weight ?? null,
                 ];
             }
+
+            $customizationDetails['add_ons'] = collect($customizationDetails['add_ons'])
+                ->sortBy('id')
+                ->values()
+                ->all();
         }
 
         $existingItem = $cart->items()
@@ -90,7 +97,7 @@ class CartService
     public function getCartContents(Request $request): Cart
     {
         $cart = $this->getOrCreateCart($request);
-        $cart->load('items.product.category', 'items.variant.images');
+        $cart->load('items.product.category', 'items.product.addOns', 'items.variant.images');
         return $cart;
     }
 
@@ -108,7 +115,7 @@ class CartService
         $cart = $item->cart;
         $item->delete();
 
-        $cart->load('items.product.category', 'items.variant.images');
+        $cart->load('items.product.category', 'items.product.addOns', 'items.variant.images');
         return $cart;
     }
 

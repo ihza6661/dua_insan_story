@@ -16,6 +16,7 @@ class UpdateRequest extends FormRequest
         return [
             'price' => ['sometimes', 'required', 'integer', 'min:0'],
             'stock' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'weight' => ['sometimes', 'nullable', 'integer', 'min:0'],
         ];
     }
 

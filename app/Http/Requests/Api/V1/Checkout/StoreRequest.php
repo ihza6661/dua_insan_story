@@ -35,7 +35,6 @@ class StoreRequest extends FormRequest
             'prewedding_photo' => ['nullable', 'mimes:jpeg,png,bmp,gif,svg,webp', 'max:5120'],
 
             'postal_code' => ['required', 'string', 'digits:5'],
-            'weight' => ['required', 'numeric', 'min:1'], // in grams
             'shipping_cost' => ['required', 'numeric'],
             'shipping_service' => ['required', 'string', 'max:255'],
             'courier' => ['required', 'string', 'max:255'],

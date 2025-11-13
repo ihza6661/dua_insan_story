@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\ProductAddOn;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -15,6 +16,7 @@ class Product extends Model
         'name',
         'description',
         'base_price',
+        'weight',
         'min_order_quantity',
         'is_active',
     ];
@@ -23,6 +25,7 @@ class Product extends Model
     {
         return [
             'is_active' => 'boolean',
+            'weight' => 'integer',
         ];
     }
 
@@ -38,7 +41,9 @@ class Product extends Model
 
     public function addOns()
     {
-        return $this->belongsToMany(AddOn::class, 'product_add_ons');
+        return $this->belongsToMany(AddOn::class, 'product_add_ons')
+            ->using(ProductAddOn::class)
+            ->withPivot('weight');
     }
 
     public function galleryItems()

@@ -24,6 +24,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'base_price' => $this->base_price,
+            'weight' => $this->weight,
             'min_order_quantity' => $this->min_order_quantity,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at->toDateTimeString(),

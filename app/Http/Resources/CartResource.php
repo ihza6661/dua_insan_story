@@ -19,6 +19,7 @@ class CartResource extends JsonResource
             'session_id' => $this->when(!Auth::check(), $this->session_id),
             'total_items' => $this->items->sum('quantity'),
             'subtotal' => $subtotal,
+            'total_weight' => $this->items->sum('total_weight'),
             'items' => CartItemResource::collection($this->whenLoaded('items')),
         ];
     }

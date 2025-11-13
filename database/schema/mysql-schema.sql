@@ -373,6 +373,7 @@ DROP TABLE IF EXISTS `product_add_ons`;
 CREATE TABLE `product_add_ons` (
   `product_id` bigint(20) unsigned NOT NULL,
   `add_on_id` bigint(20) unsigned NOT NULL,
+  `weight` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`product_id`,`add_on_id`),
   KEY `product_add_ons_add_on_id_foreign` (`add_on_id`),
   CONSTRAINT `product_add_ons_add_on_id_foreign` FOREIGN KEY (`add_on_id`) REFERENCES `add_ons` (`id`) ON DELETE CASCADE,
@@ -430,6 +431,7 @@ CREATE TABLE `product_variants` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `product_id` bigint(20) unsigned NOT NULL,
   `price` bigint(20) unsigned NOT NULL,
+  `weight` int(10) unsigned DEFAULT NULL,
   `stock` int(10) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -447,6 +449,7 @@ CREATE TABLE `products` (
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `base_price` bigint(20) unsigned NOT NULL,
+  `weight` int(10) unsigned DEFAULT NULL,
   `min_order_quantity` int(11) NOT NULL DEFAULT 100,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,

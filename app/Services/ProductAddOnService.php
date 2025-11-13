@@ -9,7 +9,11 @@ class ProductAddOnService
 {
     public function attachAddOn(Product $product, array $data): void
     {
-        $product->addOns()->attach($data['add_on_id']);
+        $product->addOns()->syncWithoutDetaching([
+            $data['add_on_id'] => [
+                'weight' => $data['weight'] ?? null,
+            ],
+        ]);
     }
 
     public function detachAddOn(Product $product, AddOn $addOn): void

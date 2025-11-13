@@ -4,27 +4,32 @@ namespace App\Services;
 
 use App\Models\InvitationDetail;
 use App\Models\Order;
+use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class CheckoutService
 {
     protected $rajaOngkirService;
     protected $midtransService;
+    protected $cartService;
 
-    public function __construct(RajaOngkirService $rajaOngkirService, MidtransService $midtransService)
+    public function __construct(RajaOngkirService $rajaOngkirService, MidtransService $midtransService, CartService $cartService)
     {
         $this->rajaOngkirService = $rajaOngkirService;
         $this->midtransService = $midtransService;
+        $this->cartService = $cartService;
     }
 
     public function processCheckout(Request $request): Order
     {
-        $user = $request->user(); // Can be null for guests
-        $cart = $user ? $user->cart : session('cart'); // Adjust to get cart from session for guests
+        $cart = $this->cartService->getOrCreateCart($request);
+        $cart->loadMissing('items.product.addOns', 'items.variant');
+        $user = $request->user();
 
         if (!$cart || $cart->items->isEmpty()) {
             throw new \Exception('Keranjang belanja Anda kosong.');
@@ -183,24 +188,46 @@ class CheckoutService
 
         return $snapToken;
     }
-    public function calculateShippingCost(array $data)
+    public function calculateShippingCost(Request $request)
     {
-        if (!isset($data['postal_code'])) {
-            throw new \Exception('Postal code is required.');
+        $validated = Validator::make($request->all(), [
+            'postal_code' => ['required', 'string'],
+            'courier' => ['required', 'string'],
+        ])->validate();
+
+        $cart = $this->cartService->getOrCreateCart($request);
+        $cart->loadMissing('items.product.addOns', 'items.variant');
+
+        if (!$cart || $cart->items->isEmpty()) {
+            throw new \Exception('Keranjang belanja Anda kosong.');
         }
 
-        $destinationCity = $this->rajaOngkirService->getCityByPostalCode($data['postal_code']);
+    $totalWeight = $this->calculateTotalWeight(collect($cart->items));
+
+        $destinationCity = $this->rajaOngkirService->getCityByPostalCode($validated['postal_code']);
 
         if (!$destinationCity) {
             throw new \Exception('Could not find city for the given postal code.');
         }
 
-        $originCityId = config('rajaongkir.origin_city_id'); // Assuming you have a default origin city ID in your config
+        $originCityId = config('rajaongkir.origin_city_id');
         $destinationCityId = $destinationCity['city_id'];
-        $weight = $data['weight'] ?? 1000; // Default to 1kg
-        $courier = $data['courier'];
+        $courier = $validated['courier'];
 
-        return $this->rajaOngkirService->getCost($originCityId, $destinationCityId, $weight, $courier);
+        $response = $this->rajaOngkirService->getCost(
+            $originCityId,
+            $destinationCityId,
+            max($totalWeight, 1),
+            $courier
+        );
+
+        if (!is_array($response)) {
+            return $response;
+        }
+
+        $response['total_weight'] = $totalWeight;
+
+        return $response;
     }
 
     public function clearCart(\App\Models\User $user): void
@@ -209,5 +236,17 @@ class CheckoutService
         if ($cart) {
             $cart->items()->delete();
         }
+    }
+
+    private function calculateTotalWeight(iterable $cartItems): int
+    {
+        return (int) collect($cartItems)->sum(function (CartItem $item) {
+            $variantWeight = $item->variant?->weight;
+            $productWeight = (int) ($item->product->weight ?? 0);
+            $baseWeight = $variantWeight !== null ? (int) $variantWeight : $productWeight;
+            $addOnWeight = $item->addOns->sum(fn ($addOn) => (int) ($addOn->pivot->weight ?? $addOn->weight ?? 0));
+
+            return ($baseWeight + $addOnWeight) * $item->quantity;
+        });
     }
 }

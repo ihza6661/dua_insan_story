@@ -13,6 +13,7 @@ class ProductVariantResource extends JsonResource
             'id' => $this->id,
             'price' => $this->price,
             'stock' => $this->stock,
+            'weight' => $this->weight,
             'options' => AttributeValueResource::collection($this->whenLoaded('options')),
             'images' => ProductImageResource::collection($this->whenLoaded('images')),
         ];

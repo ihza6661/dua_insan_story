@@ -18,6 +18,7 @@ class StoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'base_price' => ['required', 'integer', 'min:0'],
+            'weight' => ['nullable', 'integer', 'min:0'],
             'min_order_quantity' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ];

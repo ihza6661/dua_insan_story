@@ -21,6 +21,7 @@ class StoreRequest extends FormRequest
                 'exists:add_ons,id',
                 Rule::unique('product_add_ons')->where('product_id', $this->route('product')->id)
             ],
+            'weight' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

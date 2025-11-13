@@ -16,6 +16,7 @@ class StoreRequest extends FormRequest
         return [
             'price' => ['required', 'integer', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],
+            'weight' => ['nullable', 'integer', 'min:0'],
             'options' => ['required', 'array', 'min:1'],
             'options.*' => ['required', 'integer', 'exists:attribute_values,id'],
         ];

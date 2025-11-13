@@ -28,6 +28,7 @@ class ProductVariantService
             $variant = $product->variants()->create([
                 'price' => $data['price'],
                 'stock' => $data['stock'] ?? 0,
+                'weight' => $data['weight'] ?? null,
             ]);
 
             $variant->options()->attach($optionIds);

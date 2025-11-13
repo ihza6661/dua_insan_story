@@ -31,7 +31,7 @@ class CheckoutController extends Controller
     public function calculateShippingCost(Request $request, CheckoutService $checkoutService): JsonResponse
     {
         try {
-            $cost = $checkoutService->calculateShippingCost($request->all());
+            $cost = $checkoutService->calculateShippingCost($request);
             return response()->json($cost);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
