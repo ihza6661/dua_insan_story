@@ -204,21 +204,18 @@ class CheckoutService
 
     $totalWeight = $this->calculateTotalWeight(collect($cart->items));
 
-        $destinationCity = $this->rajaOngkirService->getCityByPostalCode($validated['postal_code']);
-
-        if (!$destinationCity) {
-            throw new \Exception('Could not find city for the given postal code.');
-        }
-
         $originCityId = config('rajaongkir.origin_city_id');
-        $destinationCityId = $destinationCity['city_id'];
+        if (!$originCityId) {
+            throw new \Exception('Origin city is not configured.');
+        }
         $courier = $validated['courier'];
 
         $response = $this->rajaOngkirService->getCost(
             $originCityId,
-            $destinationCityId,
+            $validated['postal_code'],
             max($totalWeight, 1),
-            $courier
+            $courier,
+            'postal_code'
         );
 
         if (!is_array($response)) {

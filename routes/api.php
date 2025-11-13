@@ -14,12 +14,14 @@ use App\Http\Controllers\Api\RajaOngkirController;
 use App\Http\Controllers\Api\V1\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 
 
 Route::post('/v1/webhook/midtrans', [WebhookController::class, 'midtrans']);
 Route::post('/v1/checkout', [CheckoutController::class, 'store']);
-Route::post('/v1/shipping-cost', [CheckoutController::class, 'calculateShippingCost']);
+Route::post('/v1/shipping-cost', [CheckoutController::class, 'calculateShippingCost'])
+    ->middleware('auth.optional');
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

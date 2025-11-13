@@ -66,7 +66,7 @@ class RajaOngkirService
         return $this->request('get', 'subdistrict', $data);
     }
 
-    public function getCost($origin, $destination, $weight, $courier)
+    public function getCost($origin, $destination, $weight, $courier, $destinationType = null)
     {
         $data = [
             'origin' => $origin,
@@ -74,6 +74,10 @@ class RajaOngkirService
             'weight' => $weight, // in grams
             'courier' => $courier, // e.g., 'jne', 'pos', 'tiki'
         ];
+
+        if ($destinationType) {
+            $data['destination_type'] = $destinationType;
+        }
 
         return $this->request('post', 'calculate/domestic-cost', $data);
     }
