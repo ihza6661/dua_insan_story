@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->unsignedInteger('weight')->nullable()->after('price');
-        });
+        if (!Schema::hasColumn('product_variants', 'weight')) {
+            Schema::table('product_variants', function (Blueprint $table) {
+                $table->unsignedInteger('weight')->nullable()->after('price');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->dropColumn('weight');
-        });
+        if (Schema::hasColumn('product_variants', 'weight')) {
+            Schema::table('product_variants', function (Blueprint $table) {
+                $table->dropColumn('weight');
+            });
+        }
     }
 };
