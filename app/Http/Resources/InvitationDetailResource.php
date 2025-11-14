@@ -23,7 +23,7 @@ class InvitationDetailResource extends JsonResource
             'reception_time' => $this->reception_time,
             'reception_location' => $this->reception_location,
             'gmaps_link' => $this->gmaps_link,
-            'prewedding_photo_url' => $this->prewedding_photo_path ? asset('storage/' . $this->prewedding_photo_path) : null,
+            'prewedding_photo_url' => $this->prewedding_photo_path ? asset($this->prewedding_photo_path) : null,
         ];
     }
 }
