@@ -15,6 +15,7 @@ class AdminProductCategoryResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'image' => $this->image,
+            'image_url' => $this->image_url,
             'created_at' => $this->created_at->toDateTimeString(),
         ];
     }

@@ -25,11 +25,6 @@ class ProductCategory extends Model
 
 
 
-    public function getImageAttribute($value): ?string
-    {
-        return $value ? Storage::disk('public')->url($value) : null;
-    }
-
     public function getImageUrlAttribute(): ?string
     {
         return $this->image ? Storage::disk('public')->url($this->image) : null;
