@@ -16,7 +16,7 @@ class GalleryItemResource extends JsonResource
             'description' => $this->description,
             'category' => $this->category,
             'media_type' => $this->media_type,
-            'file_url' => Storage::disk('public')->url($this->file_url),
+            'file_url' => $this->file_url,
             'product' => new ProductResource($this->whenLoaded('product')),
             'created_at' => $this->created_at->toDateTimeString(),
         ];
