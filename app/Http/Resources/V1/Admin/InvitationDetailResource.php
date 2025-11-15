@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class InvitationDetailResource extends JsonResource
 {
@@ -28,7 +29,7 @@ class InvitationDetailResource extends JsonResource
             'reception_time' => $this->reception_time,
             'reception_location' => $this->reception_location,
             'gmaps_link' => $this->gmaps_link,
-            'prewedding_photo' => $this->prewedding_photo_path ? asset($this->prewedding_photo_path) : null,
+            'prewedding_photo' => $this->prewedding_photo_path ? Storage::disk('public')->url($this->prewedding_photo_path) : null,
         ];
     }
 }

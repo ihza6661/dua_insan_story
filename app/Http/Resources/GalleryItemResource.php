@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class GalleryItemResource extends JsonResource
 {
@@ -15,7 +16,7 @@ class GalleryItemResource extends JsonResource
             'description' => $this->description,
             'category' => $this->category,
             'media_type' => $this->media_type,
-            'file_url' => $this->file_url,
+            'file_url' => Storage::disk('public')->url($this->file_url),
             'product' => new ProductResource($this->whenLoaded('product')),
             'created_at' => $this->created_at->toDateTimeString(),
         ];
