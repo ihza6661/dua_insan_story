@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:8080', 'http://localhost:3000'],
+    'allowed_origins' => [
+        'http://localhost:8080',
+        'http://localhost:3000',
+        'https://duainsan-story-user-site.vercel.app'
+    ],
 
     'allowed_origins_patterns' => [],
 
