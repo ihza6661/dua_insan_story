@@ -84,9 +84,25 @@ jobs:
           name: php-app
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'dua-insan-story'
           slot-name: 'production'
           package: 'deploy.zip'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          post-deployment-action: |
+            #!/binbin/bash
+            echo "Running post-deployment commands..."
+            cd /home/site/wwwroot
+            
+            echo "Creating .env file..."
+            echo "${{ secrets.ENV_FILE }}" > .env
+            
+            echo "Linking storage..."
+            php artisan storage:link
+            
+            echo "Caching config..."
+            php artisan config:cache
+            
+            echo "Post-deployment commands finished."
