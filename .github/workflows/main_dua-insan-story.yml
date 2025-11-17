@@ -33,7 +33,7 @@ jobs:
 
       - name: Validate and install PHP dependencies
         run: |
-          composer update --no-dev --prefer-dist --no-progress --optimize-autoloader
+          composer install --no-dev --prefer-dist --no-progress --optimize-autoloader
           composer validate --no-check-publish
 
       - name: Setup Node.js
@@ -104,5 +104,11 @@ jobs:
             
             echo "Caching config..."
             php artisan config:cache
+            
+            echo "Caching routes..."
+            php artisan route:cache
+
+            echo "Caching views..."
+            php artisan view:cache
             
             echo "Post-deployment commands finished."
