@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('add_ons', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->integer('price');
-            $table->integer('weight')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('add_ons')) {
+            Schema::create('add_ons', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->integer('price');
+                $table->integer('weight')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

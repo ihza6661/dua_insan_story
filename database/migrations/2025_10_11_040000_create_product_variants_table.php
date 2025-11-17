@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_variants', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained('products');
-            $table->string('sku')->nullable();
-            $table->integer('price');
-            $table->integer('stock');
-            $table->integer('weight')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('product_variants')) {
+            Schema::create('product_variants', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('product_id')->constrained('products');
+                $table->string('sku')->nullable();
+                $table->integer('price');
+                $table->integer('stock');
+                $table->integer('weight')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

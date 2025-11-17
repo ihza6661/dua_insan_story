@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cart_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('cart_id')->constrained('carts');
-            $table->foreignId('product_id')->constrained('products');
-            $table->foreignId('product_variant_id')->nullable()->constrained('product_variants');
-            $table->integer('quantity');
-            $table->decimal('unit_price', 15, 2);
-            $table->json('customization_details')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('cart_items')) {
+            Schema::create('cart_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('cart_id')->constrained('carts');
+                $table->foreignId('product_id')->constrained('products');
+                $table->foreignId('product_variant_id')->nullable()->constrained('product_variants');
+                $table->integer('quantity');
+                $table->decimal('unit_price', 15, 2);
+                $table->json('customization_details')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
