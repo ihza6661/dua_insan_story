@@ -11,7 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('add_ons', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->integer('price');
+            $table->integer('weight')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -19,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('add_ons');
     }
 };

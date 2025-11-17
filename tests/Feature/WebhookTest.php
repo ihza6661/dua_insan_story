@@ -18,17 +18,17 @@ class WebhookTest extends TestCase
         $order = Order::factory()->create([
             'customer_id' => $user->id,
         ]);
-        Payment::factory()->create([
+        $payment = Payment::factory()->create([
             'order_id' => $order->id,
         ]);
 
-        return $order;
+        return [$order, $payment];
     }
 
-    private function createPayload($order, $transactionStatus)
+    private function createPayload($order, $payment, $transactionStatus)
     {
         $payload = [
-            'order_id' => $order->order_number,
+            'order_id' => $payment->transaction_id,
             'status_code' => '200',
             'gross_amount' => $order->total_amount . '.00',
             'transaction_status' => $transactionStatus,
@@ -41,15 +41,15 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_settlement()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'settlement');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'settlement');
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'order_status' => 'processing',
+            'order_status' => 'Paid',
         ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
@@ -59,15 +59,15 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_pending()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'pending');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'pending');
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'order_status' => 'pending',
+            'order_status' => 'Pending Payment',
         ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
@@ -77,15 +77,15 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_deny()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'deny');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'deny');
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'order_status' => 'failed',
+            'order_status' => 'Failed',
         ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
@@ -95,15 +95,15 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_cancel()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'cancel');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'cancel');
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'order_status' => 'cancelled',
+            'order_status' => 'Cancelled',
         ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
@@ -113,15 +113,15 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_expire()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'expire');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'expire');
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'order_status' => 'cancelled',
+            'order_status' => 'Cancelled',
         ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
@@ -131,15 +131,15 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_refund()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'refund');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'refund');
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
 
         $response->assertStatus(200);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'order_status' => 'refunded',
+            'order_status' => 'Refunded',
         ]);
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id,
@@ -149,8 +149,8 @@ class WebhookTest extends TestCase
 
     public function test_webhook_handles_invalid_signature()
     {
-        $order = $this->createOrder();
-        $payload = $this->createPayload($order, 'settlement');
+        [$order, $payment] = $this->createOrder();
+        $payload = $this->createPayload($order, $payment, 'settlement');
         $payload['signature_key'] = 'invalid-signature';
 
         $response = $this->postJson('/api/v1/webhook/midtrans', $payload);

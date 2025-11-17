@@ -17,6 +17,24 @@ class WebhookController extends Controller
         $this->checkoutService = $checkoutService;
     }
 
+    private function resolvePaymentByOrderId(string $orderId): ?Payment
+    {
+        // First, try to find the payment with the exact order_id
+        $payment = Payment::where('transaction_id', $orderId)->first();
+
+        if ($payment) {
+            return $payment;
+        }
+
+        // If not found, check if the order_id has a suffix (e.g., from Midtrans sandbox)
+        if (str_contains($orderId, '-')) {
+            $transactionId = explode('-', $orderId)[0];
+            return Payment::where('transaction_id', $transactionId)->first();
+        }
+
+        return null;
+    }
+
     public function midtrans(Request $request)
     {
         try {
@@ -43,7 +61,7 @@ class WebhookController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
             }
 
-            $payment = $this->resolvePayment($payload['order_id']);
+            $payment = $this->resolvePaymentByOrderId($payload['order_id']);
 
             if (!$payment) {
                 \Log::warning('Midtrans Webhook: Payment not found.', ['order_id' => $payload['order_id']]);
@@ -122,25 +140,7 @@ class WebhookController extends Controller
         }
     }
 
-    private function resolvePayment(string $midtransOrderId): ?Payment
-    {
-        $payment = Payment::where('transaction_id', $midtransOrderId)->first();
 
-        if ($payment) {
-            return $payment;
-        }
-
-        if (str_contains($midtransOrderId, '-')) {
-            $segments = explode('-', $midtransOrderId);
-            $candidateId = $segments[0];
-
-            if (ctype_digit($candidateId)) {
-                return Payment::find((int) $candidateId);
-            }
-        }
-
-        return null;
-    }
 
     private function handleSuccessfulPayment(Order $order, Payment $payment, array $payload): void
     {

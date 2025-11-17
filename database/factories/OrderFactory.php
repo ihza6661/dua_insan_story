@@ -13,7 +13,7 @@ class OrderFactory extends Factory
             'order_number' => 'order-' . Str::random(10),
             'total_amount' => $this->faker->numberBetween(10000, 100000),
             'shipping_address' => $this->faker->address,
-            'order_status' => 'pending_payment',
+            'order_status' => 'Pending Payment',
         ];
     }
 }
