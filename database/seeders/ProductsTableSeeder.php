@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class ProductsTableSeeder extends Seeder
 {
@@ -15,8 +16,8 @@ class ProductsTableSeeder extends Seeder
     public function run()
     {
         
-
-        \DB::table('products')->delete();
+        Schema::disableForeignKeyConstraints();
+        \DB::table('products')->truncate();
         
         \DB::table('products')->insert(array (
             0 => 
@@ -67,7 +68,20 @@ class ProductsTableSeeder extends Seeder
                 'created_at' => '2025-10-11 13:29:32',
                 'updated_at' => '2025-10-11 13:29:32',
             ),
+            4 =>
+            array (
+                'id' => 5,
+                'category_id' => 2,
+                'name' => 'Guest Book',
+                'description' => 'Buku tamu untuk acara pernikahan',
+                'base_price' => 2000,
+                'min_order_quantity' => 100,
+                'is_active' => 1,
+                'created_at' => '2025-11-16 13:29:32',
+                'updated_at' => '2025-11-16 13:29:32',
+            ),
         ));
+        Schema::enableForeignKeyConstraints();
         
         
     }
