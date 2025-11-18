@@ -95,5 +95,3 @@ Route::prefix('v1/admin')
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     });
-
-Route::post('/midtrans/webhook', [WebhookController::class, 'midtrans']);
