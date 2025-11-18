@@ -16,6 +16,11 @@ cat /etc/nginx/sites-available/default
 echo "Attempting to change Nginx document root..."
 sed -i 's|root /home/site/wwwroot;|root /home/site/wwwroot/public;|g' /etc/nginx/sites-available/default
 
+# Add try_files directive for Laravel clean URLs
+echo "Adding try_files directive for Laravel..."
+sed -i '/index  index.php index.html index.htm hostingstart.html;/a\        try_files $uri $uri/ /index.php?$query_string;' /etc/nginx/sites-available/default
+
+
 # Verify the change
 echo "Modified Nginx config:"
 cat /etc/nginx/sites-available/default
