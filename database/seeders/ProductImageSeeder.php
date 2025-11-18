@@ -42,10 +42,6 @@ class ProductImageSeeder extends Seeder
     private function getProductImagesForProduct(string $productName): array
     {
         $productImageMap = [
-            'Blue on Blue' => ['blue-on-blue/1.jpg', 'blue-on-blue/2.jpg', 'blue-on-blue/3.jpg'],
-            'Alice in Wonderland' => ['alice-wonderland-theme/1.jpg', 'alice-wonderland-theme/2.jpg', 'alice-wonderland-theme/3.jpg'],
-            'Tema Jawa Modern' => ['tema-jawa-modern/1.jpg', 'tema-jawa-modern/2.jpg', 'tema-jawa-modern/3.jpg'],
-            'Fairy Tale' => ['fairy-tale/1.jpg', 'fairy-tale/2.jpg', 'fairy-tale/3.jpg'],
             'Guest Book' => ['guestbook-1/duainsan.story-16-11-2025-0001.jpg', 'guestbook-1/duainsan.story-16-11-2025-0002.jpg', 'guestbook-1/duainsan.story-16-11-2025-0003.jpg', 'guestbook-1/duainsan.story-16-11-2025-0004.jpg', 'guestbook-1/duainsan.story-16-11-2025-0005.jpg', 'guestbook-1/duainsan.story-16-11-2025-0006.jpg', 'guestbook-1/duainsan.story-16-11-2025-0007.jpg', 'guestbook-1/duainsan.story-16-11-2025-0008.jpg'],
         ];
 
