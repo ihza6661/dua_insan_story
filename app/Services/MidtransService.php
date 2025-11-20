@@ -54,14 +54,25 @@ class MidtransService
     private function buildItemDetails(Order $order, Payment $payment): array
     {
         if ($payment->payment_type === 'dp') {
-            return [
+            $items = [
                 [
                     'id' => 'DP-' . $order->order_number,
-                    'price' => $payment->amount,
+                    'price' => $payment->amount - $order->shipping_cost,
                     'quantity' => 1,
                     'name' => 'Down Payment (' . $order->order_number . ')',
                 ],
             ];
+
+            if ($order->shipping_cost > 0) {
+                $items[] = [
+                    'id' => 'SHIPPING',
+                    'price' => $order->shipping_cost,
+                    'quantity' => 1,
+                    'name' => 'Shipping Cost',
+                ];
+            }
+
+            return $items;
         }
 
         if ($payment->payment_type === 'final') {

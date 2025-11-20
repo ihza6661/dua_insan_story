@@ -26,10 +26,16 @@ class Order extends Model
         'total_amount',
         'shipping_address',
         'order_status',
+        'payment_status',
+        'shipping_cost',
+        'shipping_service',
+        'courier',
+        'snap_token',
     ];
 
     protected $casts = [
         'total_amount' => 'float',
+        'shipping_cost' => 'float',
     ];
 
     public function customer(): BelongsTo

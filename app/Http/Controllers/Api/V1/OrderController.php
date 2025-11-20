@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Services\MidtransService;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -62,27 +63,33 @@ class OrderController extends Controller
      */
     public function retryPayment(Request $request, Order $order, MidtransService $midtransService): JsonResponse
     {
-        // Authorization: Ensure the user owns the order
         if ($request->user()->id !== $order->customer_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         // Check if the order is in a state that allows payment retry
-        if ($order->order_status !== 'Pending Payment') {
+        $normalizedStatus = Str::snake($order->order_status);
+        if (!in_array($normalizedStatus, ['pending_payment', 'failed', 'cancelled'], true)) {
             return response()->json(['message' => 'This order cannot be paid for.'], 400);
         }
 
-        // Find the latest pending payment associated with the order
-        $payment = $order->payments()->where('status', 'pending')->latest()->first();
+        // Find the latest pending or failed payment associated with the order
+        $payment = $order->payments()->whereIn('status', ['pending', 'failed', 'cancelled'])->latest()->first();
 
         if (!$payment) {
             return response()->json(['message' => 'No pending payment found for this order.'], 404);
         }
 
+        // Update order status to Pending Payment
+        $order->order_status = 'Pending Payment';
+        $order->payment_status = 'pending';
+        $order->save();
+
         // Generate a new Snap Token
         try {
             $snapToken = $midtransService->createTransactionToken($order, $payment);
             $payment->snap_token = $snapToken;
+            $payment->status = 'pending';
             $payment->save();
 
             return response()->json([

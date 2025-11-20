@@ -14,8 +14,8 @@ class DashboardController extends Controller
     {
         $totalUsers = User::count();
         $totalOrders = Order::count();
-        $pendingOrders = Order::whereIn('order_status', ['pending', 'pending_payment'])->count();
-        $totalRevenue = Order::where('order_status', 'completed')->sum('total_amount');
+    $pendingOrders = Order::whereIn('order_status', ['Pending Payment', 'Partially Paid'])->count();
+    $totalRevenue = Order::where('order_status', 'Completed')->sum('total_amount');
         $weeklyRevenue = Order::select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(total_amount) as revenue')
