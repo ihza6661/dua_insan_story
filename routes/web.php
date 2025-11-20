@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
@@ -10,7 +11,10 @@ Route::get('/', function () {
 Route::get('/storage/{path}', function (string $path) {
     $fullPath = storage_path('app/public/' . ltrim($path, '/'));
 
-    if (!is_file($fullPath)) {
+    $fileExists = is_file($fullPath);
+    Log::debug('Storage request', ['path' => $path, 'resolved' => $fullPath, 'exists' => $fileExists]);
+
+    if (!$fileExists) {
         abort(404);
     }
 
