@@ -12,7 +12,7 @@ Route::get('/storage/{path}', function (string $path) {
     $fullPath = storage_path('app/public/' . ltrim($path, '/'));
 
     $fileExists = is_file($fullPath);
-    Log::debug('Storage request', ['path' => $path, 'resolved' => $fullPath, 'exists' => $fileExists]);
+    Log::info('Storage request', ['path' => $path, 'resolved' => $fullPath, 'exists' => $fileExists]);
 
     if (!$fileExists) {
         abort(404);
