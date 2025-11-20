@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class ProductCategory extends Model
 {
@@ -31,7 +32,7 @@ class ProductCategory extends Model
             return null;
         }
 
-        return asset('storage/' . ltrim($this->image, '/'));
+        return URL::route('media.stream', ['path' => ltrim($this->image, '/')]);
     }
 
 

@@ -8,13 +8,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/storage/{path}', function (string $path) {
-    $fullPath = storage_path('app/public/' . ltrim($path, '/'));
+Route::get('/media/{path}', function (string $path) {
+    $relativePath = ltrim($path, '/');
+    $fullPath = storage_path('app/public/' . $relativePath);
 
     $fileExists = is_file($fullPath);
-    $debugPayload = ['path' => $path, 'resolved' => $fullPath, 'exists' => $fileExists];
-    Log::info('Storage request', $debugPayload);
-    error_log('Storage request: ' . json_encode($debugPayload));
+    $debugPayload = ['path' => $relativePath, 'resolved' => $fullPath, 'exists' => $fileExists];
+    Log::info('Media request', $debugPayload);
+    error_log('Media request: ' . json_encode($debugPayload));
 
     if (!$fileExists) {
         abort(404);
@@ -23,4 +24,4 @@ Route::get('/storage/{path}', function (string $path) {
     return Response::file($fullPath, [
         'Cache-Control' => 'public, max-age=604800',
     ]);
-})->where('path', '.*');
+})->where('path', '.*')->name('media.stream');
