@@ -33,6 +33,10 @@ class ProductImage extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image;
+        if (!$this->image) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($this->image, '/'));
     }
 }
