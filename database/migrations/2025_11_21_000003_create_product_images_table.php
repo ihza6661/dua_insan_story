@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('product_variant_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('image');
             $table->string('alt_text')->nullable();
+            $table->boolean('is_featured')->default(false);
             $table->timestamps();
         });
     }
