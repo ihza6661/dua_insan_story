@@ -28,6 +28,7 @@ class ProductImageSeeder extends Seeder
 
                 foreach ($productImages as $image) {
                     ProductImage::create([
+                        'product_id' => $product->id,
                         'product_variant_id' => $product->variants->first()->id,
                         'image' => 'product-images/' . $image,
                         'alt_text' => $product->name,
