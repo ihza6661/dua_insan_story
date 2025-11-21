@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained();
             $table->foreignId('product_variant_id')->nullable()->constrained()->nullOnDelete();
             $table->integer('quantity');
-            $table->unsignedBigInteger('unit_price');
-            $table->unsignedBigInteger('sub_total');
+            $table->decimal('unit_price', 15, 2);
+            $table->decimal('sub_total', 15, 2);
             $table->timestamps();
         });
     }
