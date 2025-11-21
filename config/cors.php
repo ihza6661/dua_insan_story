@@ -25,7 +25,7 @@ return [
         'https://duainsan-story-user-site.vercel.app',
         'https://dua-insan-story-admin.vercel.app',
         'https://duainsanstory.eproject.tech',
-        'https://duainsanstory.admin.eproject.tech'
+        'https://admin.duainsanstory.eproject.tech'
     ],
 
     'allowed_origins_patterns' => [],
