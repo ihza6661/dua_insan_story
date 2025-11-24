@@ -13,7 +13,6 @@ use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\RajaOngkirController;
 use App\Http\Controllers\Api\V1\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 
