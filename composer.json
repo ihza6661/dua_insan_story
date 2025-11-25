@@ -12,6 +12,7 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-aws-s3-v3": "^3.0",
         "midtrans/midtrans-php": "^2.6"
     },
     "require-dev": {
@@ -42,7 +43,6 @@
             "@php artisan package:discover --ansi"
         ],
         "post-install-cmd": [
-            "chmod -R 775 storage",
             "@php artisan storage:link --force"
         ],
         "post-update-cmd": [

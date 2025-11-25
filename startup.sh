@@ -17,6 +17,8 @@ cat /etc/nginx/sites-available/default >> "$LOG_FILE" 2>&1
 echo "Attempting to change Nginx document root..." >> "$LOG_FILE" 2>&1
 sed -i 's|root /home/site/wwwroot;|root /home/site/wwwroot/public;|g' /etc/nginx/sites-available/default >> "$LOG_FILE" 2>&1
 
+sed -i '/index  index.php index.html index.htm hostingstart.html;/a\        location /storage {\n            alias /home/site/wwwroot/storage/app/public;\n            try_files $uri $uri/ =404;\n        }\n' /etc/nginx/sites-available/default >> "$LOG_FILE" 2>&1
+
 # Add try_files directive for Laravel clean URLs
 echo "Adding try_files directive for Laravel..." >> "$LOG_FILE" 2>&1
 sed -i '/index  index.php index.html index.htm hostingstart.html;/a\        try_files $uri $uri/ /index.php?$query_string;' /etc/nginx/sites-available/default >> "$LOG_FILE" 2>&1
