@@ -12,10 +12,13 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $totalUsers = User::count();
+        $totalUsers = User::where('role', 'customer')->count();
         $totalOrders = Order::count();
-    $pendingOrders = Order::whereIn('order_status', ['Pending Payment', 'Partially Paid'])->count();
-    $totalRevenue = Order::where('order_status', 'Completed')->sum('total_amount');
+        $pendingOrders = Order::whereIn('order_status', [
+            'Pending Payment', 'pending_payment', 'pending payment',
+            'Partially Paid', 'partially_paid', 'partially paid'
+        ])->count();
+        $totalRevenue = Order::whereIn('order_status', ['Completed', 'completed'])->sum('total_amount');
         $weeklyRevenue = Order::select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(total_amount) as revenue')

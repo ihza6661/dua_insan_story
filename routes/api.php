@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\RajaOngkirController;
 use App\Http\Controllers\Api\V1\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\SettingController;
 use Illuminate\Http\Request;
 
 
@@ -92,5 +93,7 @@ Route::prefix('v1/admin')
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     });
