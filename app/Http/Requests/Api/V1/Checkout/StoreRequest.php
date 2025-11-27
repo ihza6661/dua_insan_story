@@ -35,9 +35,10 @@ class StoreRequest extends FormRequest
             'prewedding_photo' => ['nullable', 'mimes:jpeg,png,bmp,gif,svg,webp', 'max:5120'],
 
             'postal_code' => ['required', 'string', 'digits:5'],
-            'shipping_cost' => ['required', 'numeric'],
-            'shipping_service' => ['required', 'string', 'max:255'],
-            'courier' => ['required', 'string', 'max:255'],
+            'shipping_method' => ['required', 'string', 'in:rajaongkir,pickup,gosend'],
+            'shipping_cost' => ['required', 'numeric', 'min:0'],
+            'shipping_service' => ['nullable', 'string', 'max:255', 'required_if:shipping_method,rajaongkir'],
+            'courier' => ['nullable', 'string', 'max:255', 'required_if:shipping_method,rajaongkir'],
             'payment_option' => ['required', 'string', 'in:full,dp'],
         ];
     }

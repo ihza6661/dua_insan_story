@@ -59,6 +59,7 @@ class CheckoutService
                 'shipping_address' => $validated['shipping_address'],
                 'order_status' => 'Pending Payment',
                 'shipping_cost' => $shippingCost,
+                'shipping_method' => $validated['shipping_method'],
                 'shipping_service' => $shippingService,
                 'courier' => $courier,
                 'payment_gateway' => 'midtrans',
