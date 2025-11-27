@@ -22,6 +22,8 @@ tags:
     description: Memproses keranjang belanja menjadi pesanan (memerlukan login).
   - name: Pesanan
     description: Mengelola pesanan pengguna setelah checkout.
+  - name: Konfigurasi
+    description: Endpoint untuk mengambil konfigurasi publik aplikasi.
 
 # ===============================================================
 # PATHS (DEFINISI ENDPOINT)
@@ -74,6 +76,20 @@ paths:
                 $ref: "#/components/schemas/SuccessMessage"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+
+  # ------------------ KONFIGURASI ------------------
+  /config/payment:
+    get:
+      tags:
+        - Konfigurasi
+      summary: Mendapatkan konfigurasi pembayaran publik (Client Key & Mode)
+      responses:
+        "200":
+          description: Konfigurasi berhasil diambil.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentConfigResponse"
 
   # ------------------ GALERI (CUSTOMER) ------------------
   /customer/gallery-items:
@@ -411,6 +427,13 @@ components:
           properties:
             user: { $ref: "#/components/schemas/User" }
             token: { type: string, example: "2|aBcDeFgHiJkLmNoPqRsTuVwXyZ" }
+    
+    PaymentConfigResponse:
+      type: object
+      properties:
+        client_key: { type: string, example: "SB-Mid-client-..." }
+        is_production: { type: boolean, example: false }
+        snap_url: { type: string, example: "https://app.sandbox.midtrans.com/snap/snap.js" }
 
     GalleryItem:
       type: object
