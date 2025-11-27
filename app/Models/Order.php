@@ -28,6 +28,7 @@ class Order extends Model
         'order_status',
         'payment_status',
         'shipping_cost',
+        'shipping_method',
         'shipping_service',
         'courier',
         'snap_token',

@@ -26,9 +26,14 @@ class OrderResource extends JsonResource
             'remaining_balance' => $this->remaining_balance,
             'created_at' => $this->created_at,
             'shipping_address' => $this->shipping_address,
+            'shipping_method' => $this->shipping_method,
+            'shipping_cost' => $this->shipping_cost,
+            'shipping_service' => $this->shipping_service,
+            'courier' => $this->courier,
             'billing_address' => $this->billingAddress?->full_address,
             'order_items' => OrderItemResource::collection($this->whenLoaded('items')),
             'invitation_detail' => new InvitationDetailResource($this->whenLoaded('invitationDetail')),
+            'payments' => $this->payments,
         ];
     }
 }
