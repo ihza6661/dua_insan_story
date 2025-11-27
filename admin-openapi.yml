@@ -28,6 +28,10 @@ tags:
     description: Mengelola nilai atribut (e.g., Kecil, Merah).
   - name: Admin - Tautan Item Tambahan
     description: Menautkan item tambahan ke produk.
+  - name: Admin - Pengaturan
+    description: Mengelola konfigurasi situs (e.g., Payment Gateway, Judul Situs).
+  - name: Admin - Pesanan
+    description: Mengelola pesanan masuk dan memperbarui statusnya.
 
 # ===============================================================
 # PATHS (DEFINISI ENDPOINT)
@@ -871,6 +875,112 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
 
+  # ------------------ ADMIN: PENGATURAN ------------------
+  /admin/settings:
+    get:
+      tags: [Admin - Pengaturan]
+      summary: (Admin) Daftar semua pengaturan
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar pengaturan berhasil diambil.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Setting"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    post:
+      tags: [Admin - Pengaturan]
+      summary: (Admin) Perbarui pengaturan
+      security:
+        - sanctum: []
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateSettingsBody"
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessMessage"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  # ------------------ ADMIN: PESANAN ------------------
+  /admin/orders:
+    get:
+      tags: [Admin - Pesanan]
+      summary: (Admin) Daftar semua pesanan
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar pesanan berhasil diambil.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /admin/orders/{orderId}:
+    get:
+      tags: [Admin - Pesanan]
+      summary: (Admin) Lihat detail pesanan
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Detail pesanan berhasil diambil.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Order"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /admin/orders/{orderId}/status:
+    post:
+      tags: [Admin - Pesanan]
+      summary: (Admin) Perbarui status pesanan
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Status pesanan berhasil diperbarui.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: "Status pesanan berhasil diperbarui." }
+                  data: { $ref: "#/components/schemas/Order" }
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
 # ===============================================================
 # COMPONENTS (BAGIAN YANG DAPAT DIGUNAKAN KEMBALI)
 # ===============================================================
@@ -1010,6 +1120,41 @@ components:
       properties:
         message: { type: string, example: "Nilai atribut berhasil dibuat." }
         data: { $ref: "#/components/schemas/AttributeValue" }
+
+    Setting:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        key: { type: string, example: "site_title" }
+        value: { type: string, nullable: true, example: "Dua Insan Story" }
+        type: { type: string, example: "text" }
+        group: { type: string, example: "general" }
+        label: { type: string, example: "Judul Situs" }
+
+    Order:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        order_number: { type: string, example: "INV-1754321098-ABCD" }
+        total_amount: { type: integer, example: 825000 }
+        shipping_address: { type: string }
+        order_status: { type: string, example: "pending_payment" }
+        payment_status: { type: string, example: "pending" }
+        customer: { $ref: "#/components/schemas/User" }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        created_at: { type: string, format: "date-time" }
+    OrderItem:
+      type: object
+      properties:
+        id: { type: integer }
+        quantity: { type: integer }
+        unit_price: { type: integer }
+        sub_total: { type: integer }
+        product_name: { type: string }
+        variant_sku: { type: string, nullable: true }
 
     GenericError:
       type: object
@@ -1260,6 +1405,36 @@ components:
             properties:
               add_on_id: { type: integer, example: 3 }
 
+    UpdateSettingsBody:
+      description: Data pengaturan yang akan diperbarui.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [settings]
+            properties:
+              settings:
+                type: array
+                items:
+                  type: object
+                  required: [key]
+                  properties:
+                    key: { type: string, example: "site_title" }
+                    value: { type: string, nullable: true, example: "Judul Baru" }
+
+    UpdateOrderStatusBody:
+      description: Status baru untuk pesanan.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [status]
+            properties:
+              status:
+                type: string
+                enum: [pending_payment, paid, processing, packing, shipped, completed, cancelled, failed]
+                example: "processing"
+
   parameters:
     UserId:
       name: userId
@@ -1317,6 +1492,12 @@ components:
       in: path
       required: true
       description: ID dari nilai atribut.
+      schema: { type: integer }
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      description: ID dari pesanan.
       schema: { type: integer }
 
   responses:
