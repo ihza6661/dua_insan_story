@@ -32,4 +32,16 @@ class SettingController extends Controller
 
         return response()->json(['message' => 'Settings updated successfully']);
     }
+
+    public function publicPaymentConfig()
+    {
+        $clientKey = \App\Models\Setting::where('key', 'midtrans_client_key')->value('value') ?? env('MIDTRANS_CLIENT_KEY');
+        $isProduction = (\App\Models\Setting::where('key', 'payment_gateway_mode')->value('value') === 'production') ?? env('MIDTRANS_IS_PRODUCTION', false);
+
+        return response()->json([
+            'client_key' => $clientKey,
+            'is_production' => $isProduction,
+            'snap_url' => $isProduction ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js',
+        ]);
+    }
 }
