@@ -68,9 +68,18 @@ class OrderController extends Controller
         }
 
         // Check if the order is in a state that allows payment retry
-        $normalizedStatus = Str::snake($order->order_status);
-        if (!in_array($normalizedStatus, ['pending_payment', 'failed', 'cancelled'], true)) {
-            return response()->json(['message' => 'This order cannot be paid for.'], 400);
+        $status = $order->order_status ?? '';
+        $normalizedStatus = $status ? strtolower(str_replace(' ', '_', $status)) : '';
+        
+        // Allow empty status as it might indicate an initial state
+        $allowedStatuses = ['pending_payment', 'pending', 'failed', 'cancelled', ''];
+        
+        if (!in_array($normalizedStatus, $allowedStatuses, true)) {
+            return response()->json([
+                'message' => 'This order cannot be paid for.',
+                'current_status' => $status,
+                'allowed_statuses' => $allowedStatuses
+            ], 400);
         }
 
         // Find the latest pending or failed payment associated with the order
@@ -97,6 +106,13 @@ class OrderController extends Controller
                 'snap_token' => $snapToken,
             ]);
         } catch (\Exception $e) {
+            \Log::error('Midtrans Token Generation Failed', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'transaction_id' => $payment->transaction_id,
+                'server_key_exists' => !empty(config('midtrans.server_key')),
+                'is_production' => config('midtrans.is_production'),
+            ]);
             return response()->json(['message' => 'Failed to generate payment token: ' . $e->getMessage()], 500);
         }
     }

@@ -7,13 +7,29 @@ use App\Models\Payment;
 use Midtrans\Snap;
 use Midtrans\Config;
 use Midtrans\Notification;
+use Illuminate\Support\Str;
 
 class MidtransService
 {
     public function __construct()
     {
-        Config::$serverKey = config('midtrans.server_key');
-        Config::$isProduction = config('midtrans.is_production');
+        $this->configureMidtrans();
+    }
+
+    public function configureMidtrans()
+    {
+        // Fetch settings directly from DB to avoid config caching issues
+        // and ensure we always have the latest values.
+        
+        $serverKey = \App\Models\Setting::where('key', 'midtrans_server_key')->value('value');
+        $mode = \App\Models\Setting::where('key', 'payment_gateway_mode')->value('value');
+        
+        // Fallback to config/env if DB values are missing
+        $serverKey = $serverKey ?: config('midtrans.server_key');
+        $isProduction = ($mode === 'production') ?: config('midtrans.is_production');
+
+        Config::$serverKey = $serverKey;
+        Config::$isProduction = $isProduction;
         Config::$isSanitized = config('midtrans.is_sanitized');
         Config::$is3ds = config('midtrans.is_3ds');
         Config::$overrideNotifUrl = config('midtrans.notification_url');
@@ -26,12 +42,23 @@ class MidtransService
 
     public function createTransactionToken(Order $order, Payment $payment)
     {
-        $orderId = $payment->transaction_id;
+        $this->configureMidtrans();
+        
+        // Generate a new unique Transaction ID for every attempt.
+        // This is crucial for retries, as Midtrans does not allow reusing the same Order ID 
+        // if the previous attempt failed or is still pending in their system.
+        // We append a short random suffix (4 chars) to the Order Number.
+        $suffix = strtoupper(Str::random(4));
+        $newTransactionId = $order->order_number . '-' . $suffix;
+        
+        // Update the payment record with the new transaction ID so we can match the webhook later.
+        $payment->transaction_id = $newTransactionId;
+        $payment->save();
 
         $params = [
             'transaction_details' => [
-                'order_id' => $orderId,
-                'gross_amount' => $payment->amount,
+                'order_id' => $newTransactionId,
+                'gross_amount' => (int) $payment->amount, // Ensure integer for safety
             ],
             'customer_details' => [
                 'first_name' => $order->customer->name,
@@ -45,7 +72,9 @@ class MidtransService
     }
 
     /**
-     * Build item details for Midtrans based on payment type.
+     * Build item details for Midtrans.
+     * We use a simplified single-item approach to ensure the sum of items exactly matches the gross amount.
+     * This prevents "Transaction not found" errors caused by rounding mismatches or shipping cost calculations.
      *
      * @param Order $order
      * @param Payment $payment
@@ -53,58 +82,27 @@ class MidtransService
      */
     private function buildItemDetails(Order $order, Payment $payment): array
     {
+        $itemName = 'Payment';
+        $itemIdPrefix = 'PAY';
+
         if ($payment->payment_type === 'dp') {
-            $items = [
-                [
-                    'id' => 'DP-' . $order->order_number,
-                    'price' => $payment->amount - $order->shipping_cost,
-                    'quantity' => 1,
-                    'name' => 'Down Payment (' . $order->order_number . ')',
-                ],
-            ];
-
-            if ($order->shipping_cost > 0) {
-                $items[] = [
-                    'id' => 'SHIPPING',
-                    'price' => $order->shipping_cost,
-                    'quantity' => 1,
-                    'name' => 'Shipping Cost',
-                ];
-            }
-
-            return $items;
+            $itemName = 'Down Payment';
+            $itemIdPrefix = 'DP';
+        } elseif ($payment->payment_type === 'final') {
+            $itemName = 'Final Payment';
+            $itemIdPrefix = 'FINAL';
+        } else {
+            $itemName = 'Full Payment';
+            $itemIdPrefix = 'FULL';
         }
 
-        if ($payment->payment_type === 'final') {
-            return [
-                [
-                    'id' => 'FINAL-' . $order->order_number,
-                    'price' => $payment->amount,
-                    'quantity' => 1,
-                    'name' => 'Final Payment (' . $order->order_number . ')',
-                ],
-            ];
-        }
-
-        // For full payment, list all items
-        $items = $order->items->map(function ($item) {
-            return [
-                'id' => $item->product_variant_id ?? $item->product_id,
-                'price' => $item->unit_price,
-                'quantity' => $item->quantity,
-                'name' => $item->product->name,
-            ];
-        })->toArray();
-
-        if ($order->shipping_cost > 0) {
-            $items[] = [
-                'id' => 'SHIPPING',
-                'price' => $order->shipping_cost,
+        return [
+            [
+                'id' => $itemIdPrefix . '-' . $order->order_number,
+                'price' => (int) $payment->amount,
                 'quantity' => 1,
-                'name' => 'Shipping Cost',
-            ];
-        }
-
-        return $items;
+                'name' => $itemName . ' (' . $order->order_number . ')',
+            ],
+        ];
     }
 }

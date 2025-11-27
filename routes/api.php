@@ -39,6 +39,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/rajaongkir/cities', [RajaOngkirController::class, 'getCities']);
     Route::get('/rajaongkir/subdistricts', [RajaOngkirController::class, 'getSubdistricts']);
     Route::post('/rajaongkir/cost', [RajaOngkirController::class, 'calculateCost']);
+    Route::get('/config/payment', [SettingController::class, 'publicPaymentConfig']);
 
     Route::prefix('customer')->name('customer.v1.')->group(function () {
         Route::apiResource('products', Customer\ProductController::class)->only(['index', 'show']);
