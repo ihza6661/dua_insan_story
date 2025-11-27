@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order_item_metas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_item_id')->constrained()->cascadeOnDelete();
-            $table->string('meta_key', 100);
-            $table->string('meta_value', 255);
-            $table->integer('meta_price')->default(0);
-        });
+        if (!Schema::hasTable('order_item_metas')) {
+            Schema::create('order_item_metas', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_item_id')->constrained()->cascadeOnDelete();
+                $table->string('meta_key', 100);
+                $table->string('meta_value', 255);
+                $table->integer('meta_price')->default(0);
+            });
+        }
     }
 
     /**

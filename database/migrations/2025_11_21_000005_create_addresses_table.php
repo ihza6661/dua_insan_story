@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('addresses', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('street')->nullable();
-            $table->string('city')->nullable();
-            $table->string('state')->nullable();
-            $table->string('subdistrict')->nullable();
-            $table->string('postal_code')->nullable();
-            $table->string('country')->default('Indonesia');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('addresses')) {
+            Schema::create('addresses', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('street')->nullable();
+                $table->string('city')->nullable();
+                $table->string('state')->nullable();
+                $table->string('subdistrict')->nullable();
+                $table->string('postal_code')->nullable();
+                $table->string('country')->default('Indonesia');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
