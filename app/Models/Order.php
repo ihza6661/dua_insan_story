@@ -22,6 +22,52 @@ class Order extends Model
 {
     use HasFactory;
 
+    // Valid order status constants
+    public const STATUS_PENDING_PAYMENT = 'Pending Payment';
+
+    public const STATUS_PARTIALLY_PAID = 'Partially Paid';
+
+    public const STATUS_PAID = 'Paid';
+
+    public const STATUS_PROCESSING = 'Processing';
+
+    public const STATUS_DESIGN_APPROVAL = 'Design Approval';
+
+    public const STATUS_IN_PRODUCTION = 'In Production';
+
+    public const STATUS_SHIPPED = 'Shipped';
+
+    public const STATUS_DELIVERED = 'Delivered';
+
+    public const STATUS_COMPLETED = 'Completed';
+
+    public const STATUS_CANCELLED = 'Cancelled';
+
+    public const STATUS_FAILED = 'Failed';
+
+    public const STATUS_REFUNDED = 'Refunded';
+
+    /**
+     * Get all valid order statuses.
+     */
+    public static function getValidStatuses(): array
+    {
+        return [
+            self::STATUS_PENDING_PAYMENT,
+            self::STATUS_PARTIALLY_PAID,
+            self::STATUS_PAID,
+            self::STATUS_PROCESSING,
+            self::STATUS_DESIGN_APPROVAL,
+            self::STATUS_IN_PRODUCTION,
+            self::STATUS_SHIPPED,
+            self::STATUS_DELIVERED,
+            self::STATUS_COMPLETED,
+            self::STATUS_CANCELLED,
+            self::STATUS_FAILED,
+            self::STATUS_REFUNDED,
+        ];
+    }
+
     protected $fillable = [
         'customer_id',
         'order_number',

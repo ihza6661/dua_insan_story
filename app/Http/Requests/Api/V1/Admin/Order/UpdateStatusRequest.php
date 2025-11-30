@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Admin\Order;
 
+use App\Models\Order;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Class UpdateStatusRequest
@@ -28,7 +30,7 @@ class UpdateStatusRequest extends FormRequest
             'status' => [
                 'required',
                 'string',
-                'in:pending,paid,processing,packing,shipped,completed,cancelled',
+                Rule::in(Order::getValidStatuses()),
             ],
         ];
     }
