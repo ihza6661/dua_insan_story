@@ -15,6 +15,7 @@ class AddOnService
     public function updateAddOn(AddOn $addOn, array $data): AddOn
     {
         $addOn->update($data);
+
         return $addOn;
     }
 

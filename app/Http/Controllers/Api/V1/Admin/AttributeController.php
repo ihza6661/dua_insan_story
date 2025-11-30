@@ -27,6 +27,7 @@ class AttributeController extends Controller
     public function store(StoreRequest $request): JsonResponse
     {
         $attribute = $this->attributeService->createAttribute($request->validated());
+
         return response()->json([
             'message' => 'Atribut berhasil dibuat.',
             'data' => new AttributeResource($attribute),
@@ -36,12 +37,14 @@ class AttributeController extends Controller
     public function show(Attribute $attribute): AttributeResource
     {
         $attribute->load('attributeValues');
+
         return new AttributeResource($attribute);
     }
 
     public function update(UpdateRequest $request, Attribute $attribute): JsonResponse
     {
         $updatedAttribute = $this->attributeService->updateAttribute($attribute, $request->validated());
+
         return response()->json([
             'message' => 'Atribut berhasil diperbarui.',
             'data' => new AttributeResource($updatedAttribute),
@@ -55,6 +58,7 @@ class AttributeController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 409);
         }
+
         return response()->json(['message' => 'Atribut berhasil dihapus.']);
     }
 }

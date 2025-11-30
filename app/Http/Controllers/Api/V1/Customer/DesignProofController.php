@@ -22,7 +22,7 @@ class DesignProofController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $designProofs = DesignProof::whereHas('orderItem.order', function ($query) use ($user) {
             $query->where('customer_id', $user->id);
         })
@@ -63,7 +63,7 @@ class DesignProofController extends Controller
     {
         // Ensure the design proof belongs to the customer's order
         $orderItem = $designProof->orderItem()->with('order')->first();
-        
+
         if ($orderItem->order->customer_id !== $request->user()->id) {
             return response()->json([
                 'message' => 'Unauthorized access to this design proof',
@@ -83,7 +83,7 @@ class DesignProofController extends Controller
     {
         // Ensure the design proof belongs to the customer's order
         $orderItem = $designProof->orderItem()->with('order')->first();
-        
+
         if ($orderItem->order->customer_id !== $request->user()->id) {
             return response()->json([
                 'message' => 'Unauthorized access to this design proof',
@@ -115,7 +115,7 @@ class DesignProofController extends Controller
     {
         // Ensure the design proof belongs to the customer's order
         $orderItem = $designProof->orderItem()->with('order')->first();
-        
+
         if ($orderItem->order->customer_id !== $request->user()->id) {
             return response()->json([
                 'message' => 'Unauthorized access to this design proof',
@@ -159,7 +159,7 @@ class DesignProofController extends Controller
     {
         // Ensure the design proof belongs to the customer's order
         $orderItem = $designProof->orderItem()->with('order')->first();
-        
+
         if ($orderItem->order->customer_id !== $request->user()->id) {
             return response()->json([
                 'message' => 'Unauthorized access to this design proof',

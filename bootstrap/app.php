@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'auth.optional' => \App\Http\Middleware\AuthOptional::class,
+            'throttle.api' => \App\Http\Middleware\ApiRateLimiter::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -26,5 +27,5 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withProviders([
-        
+
     ])->create();

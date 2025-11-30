@@ -23,6 +23,7 @@ class AttributeValueController extends Controller
     public function store(StoreRequest $request, Attribute $attribute): JsonResponse
     {
         $value = $this->attributeValueService->createAttributeValue($attribute, $request->validated());
+
         return response()->json([
             'message' => 'Nilai atribut berhasil dibuat.',
             'data' => new AttributeValueResource($value),
@@ -32,6 +33,7 @@ class AttributeValueController extends Controller
     public function update(UpdateRequest $request, AttributeValue $value): JsonResponse
     {
         $updatedValue = $this->attributeValueService->updateAttributeValue($value, $request->validated());
+
         return response()->json([
             'message' => 'Nilai atribut berhasil diperbarui.',
             'data' => new AttributeValueResource($updatedValue),
@@ -45,6 +47,7 @@ class AttributeValueController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 409);
         }
+
         return response()->json(['message' => 'Nilai atribut berhasil dihapus.']);
     }
 }

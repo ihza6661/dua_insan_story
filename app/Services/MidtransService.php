@@ -4,10 +4,10 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Payment;
-use Midtrans\Snap;
+use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Notification;
-use Illuminate\Support\Str;
+use Midtrans\Snap;
 
 class MidtransService
 {
@@ -20,10 +20,10 @@ class MidtransService
     {
         // Fetch settings directly from DB to avoid config caching issues
         // and ensure we always have the latest values.
-        
+
         $serverKey = \App\Models\Setting::where('key', 'midtrans_server_key')->value('value');
         $mode = \App\Models\Setting::where('key', 'payment_gateway_mode')->value('value');
-        
+
         // Fallback to config/env if DB values are missing
         $serverKey = $serverKey ?: config('midtrans.server_key');
         $isProduction = ($mode === 'production') ?: config('midtrans.is_production');
@@ -43,14 +43,14 @@ class MidtransService
     public function createTransactionToken(Order $order, Payment $payment)
     {
         $this->configureMidtrans();
-        
+
         // Generate a new unique Transaction ID for every attempt.
-        // This is crucial for retries, as Midtrans does not allow reusing the same Order ID 
+        // This is crucial for retries, as Midtrans does not allow reusing the same Order ID
         // if the previous attempt failed or is still pending in their system.
         // We append a short random suffix (4 chars) to the Order Number.
         $suffix = strtoupper(Str::random(4));
-        $newTransactionId = $order->order_number . '-' . $suffix;
-        
+        $newTransactionId = $order->order_number.'-'.$suffix;
+
         // Update the payment record with the new transaction ID so we can match the webhook later.
         $payment->transaction_id = $newTransactionId;
         $payment->save();
@@ -75,10 +75,6 @@ class MidtransService
      * Build item details for Midtrans.
      * We use a simplified single-item approach to ensure the sum of items exactly matches the gross amount.
      * This prevents "Transaction not found" errors caused by rounding mismatches or shipping cost calculations.
-     *
-     * @param Order $order
-     * @param Payment $payment
-     * @return array
      */
     private function buildItemDetails(Order $order, Payment $payment): array
     {
@@ -98,10 +94,10 @@ class MidtransService
 
         return [
             [
-                'id' => $itemIdPrefix . '-' . $order->order_number,
+                'id' => $itemIdPrefix.'-'.$order->order_number,
                 'price' => (int) $payment->amount,
                 'quantity' => 1,
-                'name' => $itemName . ' (' . $order->order_number . ')',
+                'name' => $itemName.' ('.$order->order_number.')',
             ],
         ];
     }

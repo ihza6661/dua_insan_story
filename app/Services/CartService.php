@@ -26,6 +26,7 @@ class CartService
                 }
                 $guestCart->delete();
             }
+
             return $userCart;
         }
 
@@ -45,17 +46,17 @@ class CartService
 
         $unitPrice = $variant->price;
         $customizationDetails = [
-            'options' => $variant->options->map(fn($opt) => [
+            'options' => $variant->options->map(fn ($opt) => [
                 'name' => $opt->attribute->name,
                 'value' => $opt->value,
             ]),
             'add_ons' => [],
         ];
 
-        if (!empty($validated['add_ons'])) {
+        if (! empty($validated['add_ons'])) {
             foreach ($validated['add_ons'] as $addOnId) {
                 $addOn = $product->addOns->find($addOnId);
-                if (!$addOn) {
+                if (! $addOn) {
                     throw new InvalidArgumentException("Item tambahan dengan ID {$addOnId} tidak valid untuk produk ini.");
                 }
                 $unitPrice += $addOn->price;
@@ -91,6 +92,7 @@ class CartService
         }
 
         $cart->load('items.product.category', 'items.variant.images');
+
         return $cart;
     }
 
@@ -98,6 +100,7 @@ class CartService
     {
         $cart = $this->getOrCreateCart($request);
         $cart->load('items.product.category', 'items.product.addOns', 'items.variant.images');
+
         return $cart;
     }
 
@@ -116,6 +119,7 @@ class CartService
         $item->delete();
 
         $cart->load('items.product.category', 'items.product.addOns', 'items.variant.images');
+
         return $cart;
     }
 
@@ -124,6 +128,7 @@ class CartService
         $cart = $this->getOrCreateCart($request);
         $cart->items()->delete();
         $cart->load('items');
+
         return $cart;
     }
 }

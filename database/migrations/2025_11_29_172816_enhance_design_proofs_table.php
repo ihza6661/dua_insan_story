@@ -14,22 +14,22 @@ return new class extends Migration
         Schema::table('design_proofs', function (Blueprint $table) {
             // Add uploaded_by to track which admin uploaded the proof
             $table->foreignId('uploaded_by')->nullable()->after('order_item_id')->constrained('users')->nullOnDelete();
-            
+
             // Add file metadata
             $table->string('file_name')->nullable()->after('file_url');
             $table->string('file_type')->nullable()->after('file_name');
             $table->unsignedBigInteger('file_size')->nullable()->after('file_type')->comment('File size in bytes');
-            
+
             // Add thumbnail for quick preview
             $table->string('thumbnail_url')->nullable()->after('file_size');
-            
+
             // Enhanced status with rejected option
             $table->enum('status', ['pending_approval', 'approved', 'revision_requested', 'rejected'])->default('pending_approval')->change();
-            
+
             // Add reviewed_at timestamp
             $table->timestamp('reviewed_at')->nullable()->after('status');
             $table->foreignId('reviewed_by')->nullable()->after('reviewed_at')->constrained('users')->nullOnDelete();
-            
+
             // Add notification tracking
             $table->boolean('customer_notified')->default(false)->after('reviewed_by');
             $table->timestamp('customer_notified_at')->nullable()->after('customer_notified');

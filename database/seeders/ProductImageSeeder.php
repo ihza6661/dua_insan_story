@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-
 use Illuminate\Support\Facades\Schema;
 
 class ProductImageSeeder extends Seeder
@@ -30,7 +28,7 @@ class ProductImageSeeder extends Seeder
                     ProductImage::create([
                         'product_id' => $product->id,
                         'product_variant_id' => $product->variants->first()->id,
-                        'image' => 'product-images/' . $image,
+                        'image' => 'product-images/'.$image,
                         'alt_text' => $product->name,
                         'is_featured' => true,
                     ]);

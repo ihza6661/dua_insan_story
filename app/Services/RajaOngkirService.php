@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Log;
 class RajaOngkirService
 {
     private $apiKey;
+
     protected $baseUrl;
+
     protected $accountType;
 
     public function __construct()
@@ -20,21 +22,21 @@ class RajaOngkirService
 
     protected function request($method, $path, $data = [])
     {
-        $url = rtrim($this->baseUrl, '/') . '/' . ltrim($path, '/');
+        $url = rtrim($this->baseUrl, '/').'/'.ltrim($path, '/');
 
         $response = Http::withHeaders([
             'key' => $this->apiKey,
         ])->asForm();
 
-        if (strtolower($method) === 'get' && !empty($data)) {
+        if (strtolower($method) === 'get' && ! empty($data)) {
             $response = $response->get($url, $data);
         } else {
             $response = $response->$method($url, $data);
         }
 
-        Log::info('Raja Ongkir API Request URL: ' . $url);
-        Log::info('Raja Ongkir API Response Status: ' . $response->status());
-        Log::info('Raja Ongkir API Raw Response Body: ' . $response->body());
+        Log::info('Raja Ongkir API Request URL: '.$url);
+        Log::info('Raja Ongkir API Response Status: '.$response->status());
+        Log::info('Raja Ongkir API Raw Response Body: '.$response->body());
 
         return $response->json();
     }
@@ -50,6 +52,7 @@ class RajaOngkirService
         if ($provinceId) {
             $data['province'] = $provinceId;
         }
+
         return $this->request('get', 'city', $data);
     }
 
@@ -63,6 +66,7 @@ class RajaOngkirService
         if ($cityId) {
             $data['city'] = $cityId;
         }
+
         return $this->request('get', 'subdistrict', $data);
     }
 
@@ -95,6 +99,7 @@ class RajaOngkirService
                 }
             }
         }
+
         return null;
     }
 }

@@ -34,6 +34,7 @@ class ProductCategoryService
         }
 
         $category->update($data);
+
         return $category->fresh();
     }
 }

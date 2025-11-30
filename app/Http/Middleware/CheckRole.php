@@ -12,7 +12,7 @@ class CheckRole
     {
         if (! $request->user() || ! in_array($request->user()->role, $roles)) {
             return response()->json([
-                'message' => 'Anda tidak memiliki izin untuk mengakses sumber daya ini.'
+                'message' => 'Anda tidak memiliki izin untuk mengakses sumber daya ini.',
             ], 403);
         }
 

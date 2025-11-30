@@ -33,15 +33,15 @@ class UpdateRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama kategori wajib diisi.',
-            'name.string'   => 'Nama kategori harus berupa teks.',
-            'name.max'      => 'Nama kategori tidak boleh lebih dari :max karakter.',
-            'name.unique'   => 'Nama kategori ini sudah terdaftar.',
+            'name.string' => 'Nama kategori harus berupa teks.',
+            'name.max' => 'Nama kategori tidak boleh lebih dari :max karakter.',
+            'name.unique' => 'Nama kategori ini sudah terdaftar.',
 
             'description.string' => 'Deskripsi harus berupa teks.',
 
-            'image.image'   => 'File yang diunggah harus berupa gambar.',
-            'image.mimes'   => 'Gambar harus berupa file dengan tipe: :values.',
-            'image.max'     => 'Ukuran gambar tidak boleh lebih dari 5MB.',
+            'image.image' => 'File yang diunggah harus berupa gambar.',
+            'image.mimes' => 'Gambar harus berupa file dengan tipe: :values.',
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 5MB.',
         ];
     }
 }

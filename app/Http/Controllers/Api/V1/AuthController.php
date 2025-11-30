@@ -29,7 +29,7 @@ class AuthController extends Controller
     {
         if (! Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'Email atau password salah.'
+                'message' => 'Email atau password salah.',
             ], 401);
         }
 
@@ -41,7 +41,7 @@ class AuthController extends Controller
             'data' => [
                 'user' => new UserResource($user),
                 'token' => $token,
-            ]
+            ],
         ]);
     }
 

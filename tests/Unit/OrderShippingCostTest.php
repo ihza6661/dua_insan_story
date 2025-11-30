@@ -6,19 +6,21 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class OrderShippingCostTest extends TestCase
 {
     use RefreshDatabase;
 
+    #[Test]
     public function test_order_accepts_shipping_related_fields(): void
     {
         $user = User::factory()->create();
 
         $order = Order::create([
             'customer_id' => $user->id,
-            'order_number' => 'INV-' . Str::uuid(),
+            'order_number' => 'INV-'.Str::uuid(),
             'total_amount' => 250000,
             'shipping_address' => 'Jl. Test No. 123, Jakarta',
             'order_status' => 'Pending Payment',

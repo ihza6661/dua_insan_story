@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('order_item_metas')) {
+        if (! Schema::hasTable('order_item_metas')) {
             Schema::create('order_item_metas', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('order_item_id')->constrained()->cascadeOnDelete();

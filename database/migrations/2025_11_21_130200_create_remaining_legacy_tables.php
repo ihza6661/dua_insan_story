@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('gallery_items')) {
+        if (! Schema::hasTable('gallery_items')) {
             Schema::create('gallery_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
@@ -24,7 +24,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('design_proofs')) {
+        if (! Schema::hasTable('design_proofs')) {
             Schema::create('design_proofs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('order_item_id')->constrained()->cascadeOnDelete();
@@ -37,7 +37,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('order_custom_data')) {
+        if (! Schema::hasTable('order_custom_data')) {
             Schema::create('order_custom_data', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('order_item_id')->constrained()->cascadeOnDelete();
@@ -46,7 +46,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('cache')) {
+        if (! Schema::hasTable('cache')) {
             Schema::create('cache', function (Blueprint $table) {
                 $table->string('key')->primary();
                 $table->mediumText('value');
@@ -54,7 +54,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('cache_locks')) {
+        if (! Schema::hasTable('cache_locks')) {
             Schema::create('cache_locks', function (Blueprint $table) {
                 $table->string('key')->primary();
                 $table->string('owner');
@@ -62,7 +62,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('jobs')) {
+        if (! Schema::hasTable('jobs')) {
             Schema::create('jobs', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->string('queue');
@@ -75,7 +75,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('job_batches')) {
+        if (! Schema::hasTable('job_batches')) {
             Schema::create('job_batches', function (Blueprint $table) {
                 $table->string('id')->primary();
                 $table->string('name');
@@ -90,7 +90,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('failed_jobs')) {
+        if (! Schema::hasTable('failed_jobs')) {
             Schema::create('failed_jobs', function (Blueprint $table) {
                 $table->id();
                 $table->string('uuid')->unique();
@@ -102,7 +102,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('password_reset_tokens')) {
+        if (! Schema::hasTable('password_reset_tokens')) {
             Schema::create('password_reset_tokens', function (Blueprint $table) {
                 $table->string('email')->primary();
                 $table->string('token');

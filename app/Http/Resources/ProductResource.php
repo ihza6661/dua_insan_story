@@ -35,7 +35,7 @@ class ProductResource extends JsonResource
             // DATA BARU UNTUK MEMUDAHKAN FRONTEND
             'grouped_options' => $this->whenLoaded('variants', function () {
                 return $this->variants
-                    ->flatMap(fn($variant) => $variant->options) // Ambil semua options dari semua varian
+                    ->flatMap(fn ($variant) => $variant->options) // Ambil semua options dari semua varian
                     ->unique('id') // Buang nilai yang duplikat (misal: "Merah" muncul 2x)
                     ->groupBy('attribute.name') // Kelompokkan berdasarkan nama atribut induk
                     ->map(function ($values) {

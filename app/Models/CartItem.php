@@ -95,12 +95,13 @@ class CartItem extends Model
 
     protected function ensureProductAddOnsLoaded(): void
     {
-        if (!$this->relationLoaded('product')) {
+        if (! $this->relationLoaded('product')) {
             $this->loadMissing('product.addOns');
+
             return;
         }
 
-        if ($this->product && !$this->product->relationLoaded('addOns')) {
+        if ($this->product && ! $this->product->relationLoaded('addOns')) {
             $this->product->loadMissing('addOns');
         }
     }

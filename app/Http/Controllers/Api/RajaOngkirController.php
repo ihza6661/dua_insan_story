@@ -19,10 +19,12 @@ class RajaOngkirController extends Controller
     public function getProvinces()
     {
         $response = $this->rajaOngkirService->getProvinces();
-        if (!isset($response['rajaongkir'])) {
+        if (! isset($response['rajaongkir'])) {
             Log::error('Raja Ongkir API Error: "rajaongkir" key not found in response.', ['response' => $response]);
+
             return response()->json(['error' => 'Failed to retrieve provinces from Raja Ongkir.'], 500);
         }
+
         return response()->json($response['rajaongkir']);
     }
 
@@ -30,10 +32,12 @@ class RajaOngkirController extends Controller
     {
         $provinceId = $request->query('province_id');
         $response = $this->rajaOngkirService->getCities($provinceId);
-        if (!isset($response['rajaongkir'])) {
+        if (! isset($response['rajaongkir'])) {
             Log::error('Raja Ongkir API Error: "rajaongkir" key not found in response.', ['response' => $response]);
+
             return response()->json(['error' => 'Failed to retrieve cities from Raja Ongkir.'], 500);
         }
+
         return response()->json($response['rajaongkir']);
     }
 
@@ -41,10 +45,12 @@ class RajaOngkirController extends Controller
     {
         $cityId = $request->query('city_id');
         $response = $this->rajaOngkirService->getSubdistricts($cityId);
-        if (!isset($response['rajaongkir'])) {
+        if (! isset($response['rajaongkir'])) {
             Log::error('Raja Ongkir API Error: "rajaongkir" key not found in response.', ['response' => $response]);
+
             return response()->json(['error' => 'Failed to retrieve subdistricts from Raja Ongkir.'], 500);
         }
+
         return response()->json($response['rajaongkir']);
     }
 
@@ -61,8 +67,7 @@ class RajaOngkirController extends Controller
         $weight = $request->input('weight');
         $courier = $request->input('courier');
 
-
-        if (!$originCityId) {
+        if (! $originCityId) {
             return response()->json(['error' => 'Origin city is not configured.'], 500);
         }
 
@@ -73,8 +78,9 @@ class RajaOngkirController extends Controller
             $courier
         );
 
-        if (!isset($response['data'])) {
+        if (! isset($response['data'])) {
             Log::error('Raja Ongkir API Error: "data" key not found in response.', ['response' => $response]);
+
             return response()->json(['error' => 'Failed to calculate shipping cost from Raja Ongkir.'], 500);
         }
 
@@ -88,9 +94,9 @@ class RajaOngkirController extends Controller
                         [
                             'value' => $service['cost'],
                             'etd' => $service['etd'],
-                            'note' => ''
-                        ]
-                    ]
+                            'note' => '',
+                        ],
+                    ],
                 ];
             }
         }
@@ -101,10 +107,10 @@ class RajaOngkirController extends Controller
                     [
                         'code' => $courier,
                         'name' => $courier,
-                        'costs' => $transformedData
-                    ]
-                ]
-            ]
+                        'costs' => $transformedData,
+                    ],
+                ],
+            ],
         ];
 
         return response()->json($transformedResponse)->header('Access-Control-Allow-Origin', '*');

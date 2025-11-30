@@ -24,6 +24,7 @@ class ProductVariantController extends Controller
     {
         try {
             $variant = $this->variantService->createVariant($product, $request->validated());
+
             return response()->json([
                 'message' => 'Varian produk berhasil dibuat.',
                 'data' => new ProductVariantResource($variant),
@@ -36,12 +37,14 @@ class ProductVariantController extends Controller
     public function show(ModelProductVariant $variant): ProductVariantResource
     {
         $variant->load(['options.attribute', 'images']);
+
         return new ProductVariantResource($variant);
     }
 
     public function update(UpdateRequest $request, ModelProductVariant $variant): JsonResponse
     {
         $variant = $this->variantService->updateVariant($variant, $request->validated());
+
         return response()->json([
             'message' => 'Varian produk berhasil diperbarui.',
             'data' => new ProductVariantResource($variant),
@@ -51,6 +54,7 @@ class ProductVariantController extends Controller
     public function destroy(ModelProductVariant $variant): JsonResponse
     {
         $this->variantService->deleteVariant($variant);
+
         return response()->json(['message' => 'Varian produk berhasil dihapus.']);
     }
 }

@@ -38,8 +38,11 @@ class DesignProof extends Model
 
     // Status constants
     public const STATUS_PENDING = 'pending_approval';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REVISION_REQUESTED = 'revision_requested';
+
     public const STATUS_REJECTED = 'rejected';
 
     public function orderItem(): BelongsTo
@@ -65,6 +68,7 @@ class DesignProof extends Model
         if (filter_var($this->file_url, FILTER_VALIDATE_URL)) {
             return $this->file_url;
         }
+
         return Storage::url($this->file_url);
     }
 
@@ -73,12 +77,13 @@ class DesignProof extends Model
      */
     public function getFullThumbnailUrlAttribute(): ?string
     {
-        if (!$this->thumbnail_url) {
+        if (! $this->thumbnail_url) {
             return null;
         }
         if (filter_var($this->thumbnail_url, FILTER_VALIDATE_URL)) {
             return $this->thumbnail_url;
         }
+
         return Storage::url($this->thumbnail_url);
     }
 
@@ -119,7 +124,7 @@ class DesignProof extends Model
      */
     public function getFormattedFileSizeAttribute(): string
     {
-        if (!$this->file_size) {
+        if (! $this->file_size) {
             return 'N/A';
         }
 
@@ -132,7 +137,7 @@ class DesignProof extends Model
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**

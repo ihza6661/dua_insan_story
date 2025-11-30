@@ -23,18 +23,14 @@ class ProductCategory extends Model
         return $this->hasMany(Product::class, 'category_id');
     }
 
-
-
-
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->image) {
+        if (! $this->image) {
             return null;
         }
 
         return URL::route('media.stream', ['path' => ltrim($this->image, '/')]);
     }
-
 
     protected static function booted(): void
     {

@@ -44,7 +44,7 @@ class RetryPaymentTest extends TestCase
 
         $this->app->instance(MidtransService::class, $midtransMock);
 
-    $response = $this->postJson("/api/v1/orders/{$order->id}/retry-payment");
+        $response = $this->postJson("/api/v1/orders/{$order->id}/retry-payment");
 
         $response->assertOk()
             ->assertJson([

@@ -46,6 +46,7 @@ class GalleryItemService
         }
 
         $galleryItem->update($data);
+
         return $galleryItem;
     }
 

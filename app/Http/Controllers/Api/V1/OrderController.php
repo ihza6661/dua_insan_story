@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
+use App\Services\MidtransService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Order;
-use App\Services\MidtransService;
-use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -22,9 +21,6 @@ class OrderController extends Controller
 
     /**
      * Display a listing of the user's orders.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -36,17 +32,13 @@ class OrderController extends Controller
 
     /**
      * Display the specified order.
-     *
-     * @param Request $request
-     * @param int $order
-     * @return JsonResponse
      */
     public function show(Request $request, int $order): JsonResponse
     {
         $user = $request->user();
         $foundOrder = $this->orderService->getOrderByIdForUser($user, $order);
 
-        if (!$foundOrder) {
+        if (! $foundOrder) {
             return response()->json(['message' => 'Order not found or does not belong to user.'], 404);
         }
 
@@ -55,11 +47,6 @@ class OrderController extends Controller
 
     /**
      * Retry the payment for an order that is still pending.
-     *
-     * @param Request $request
-     * @param Order $order
-     * @param MidtransService $midtransService
-     * @return JsonResponse
      */
     public function retryPayment(Request $request, Order $order, MidtransService $midtransService): JsonResponse
     {
@@ -70,22 +57,22 @@ class OrderController extends Controller
         // Check if the order is in a state that allows payment retry
         $status = $order->order_status ?? '';
         $normalizedStatus = $status ? strtolower(str_replace(' ', '_', $status)) : '';
-        
+
         // Allow empty status as it might indicate an initial state
         $allowedStatuses = ['pending_payment', 'pending', 'failed', 'cancelled', ''];
-        
-        if (!in_array($normalizedStatus, $allowedStatuses, true)) {
+
+        if (! in_array($normalizedStatus, $allowedStatuses, true)) {
             return response()->json([
                 'message' => 'This order cannot be paid for.',
                 'current_status' => $status,
-                'allowed_statuses' => $allowedStatuses
+                'allowed_statuses' => $allowedStatuses,
             ], 400);
         }
 
         // Find the latest pending or failed payment associated with the order
         $payment = $order->payments()->whereIn('status', ['pending', 'failed', 'cancelled'])->latest()->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json(['message' => 'No pending payment found for this order.'], 404);
         }
 
@@ -110,10 +97,11 @@ class OrderController extends Controller
                 'error' => $e->getMessage(),
                 'order_id' => $order->id,
                 'transaction_id' => $payment->transaction_id,
-                'server_key_exists' => !empty(config('midtrans.server_key')),
+                'server_key_exists' => ! empty(config('midtrans.server_key')),
                 'is_production' => config('midtrans.is_production'),
             ]);
-            return response()->json(['message' => 'Failed to generate payment token: ' . $e->getMessage()], 500);
+
+            return response()->json(['message' => 'Failed to generate payment token: '.$e->getMessage()], 500);
         }
     }
 }

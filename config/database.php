@@ -82,12 +82,12 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => str_replace('postgres://', 'pgsql://', env('DATABASE_URL')),
-            'host' => parse_url(env('DATABASE_URL'), PHP_URL_HOST),
-            'port' => parse_url(env('DATABASE_URL'), PHP_URL_PORT),
-            'database' => ltrim(parse_url(env('DATABASE_URL'), PHP_URL_PATH), '/'),
-            'username' => parse_url(env('DATABASE_URL'), PHP_URL_USER),
-            'password' => parse_url(env('DATABASE_URL'), PHP_URL_PASS),
+            'url' => env('DATABASE_URL') ? str_replace('postgres://', 'pgsql://', env('DATABASE_URL')) : null,
+            'host' => env('DATABASE_URL') ? parse_url(env('DATABASE_URL'), PHP_URL_HOST) : env('DB_HOST', '127.0.0.1'),
+            'port' => env('DATABASE_URL') ? parse_url(env('DATABASE_URL'), PHP_URL_PORT) : env('DB_PORT', '5432'),
+            'database' => env('DATABASE_URL') ? ltrim(parse_url(env('DATABASE_URL'), PHP_URL_PATH), '/') : env('DB_DATABASE', 'laravel'),
+            'username' => env('DATABASE_URL') ? parse_url(env('DATABASE_URL'), PHP_URL_USER) : env('DB_USERNAME', 'root'),
+            'password' => env('DATABASE_URL') ? parse_url(env('DATABASE_URL'), PHP_URL_PASS) : env('DB_PASSWORD', ''),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,

@@ -62,7 +62,7 @@ class DesignProofController extends Controller
 
         try {
             $orderItem = OrderItem::findOrFail($request->input('order_item_id'));
-            
+
             $designProof = $this->designProofService->uploadDesignProof(
                 $orderItem,
                 $request->file('file'),

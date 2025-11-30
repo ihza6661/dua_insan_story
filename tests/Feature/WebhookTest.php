@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class WebhookTest extends TestCase
 {
@@ -30,11 +30,11 @@ class WebhookTest extends TestCase
         $payload = [
             'order_id' => $payment->transaction_id,
             'status_code' => '200',
-            'gross_amount' => $order->total_amount . '.00',
+            'gross_amount' => $order->total_amount.'.00',
             'transaction_status' => $transactionStatus,
             'fraud_status' => 'accept',
         ];
-        $payload['signature_key'] = hash('sha512', $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . config('midtrans.server_key'));
+        $payload['signature_key'] = hash('sha512', $payload['order_id'].$payload['status_code'].$payload['gross_amount'].config('midtrans.server_key'));
 
         return $payload;
     }

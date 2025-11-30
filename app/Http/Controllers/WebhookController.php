@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\MidtransService;
-use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\MidtransService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
@@ -30,8 +30,9 @@ class WebhookController extends Controller
         $paymentId = explode('-', $orderId)[0];
         $payment = Payment::find($paymentId);
 
-        if (!$payment) {
-            Log::error('Payment not found for ID: ' . $paymentId);
+        if (! $payment) {
+            Log::error('Payment not found for ID: '.$paymentId);
+
             return response()->json(['error' => 'Payment not found'], 404);
         }
 
@@ -42,10 +43,10 @@ class WebhookController extends Controller
                 // Payment is successful
                 $this->handleSuccessfulPayment($payment, $order);
             }
-        } else if ($transactionStatus == 'settlement') {
+        } elseif ($transactionStatus == 'settlement') {
             // Payment is settled
             $this->handleSuccessfulPayment($payment, $order);
-        } else if (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
+        } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
             // Payment failed
             $payment->status = 'failed';
             $payment->save();
