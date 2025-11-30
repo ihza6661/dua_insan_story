@@ -71,6 +71,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);
         Route::post('/orders/{order}/retry-payment', [OrderController::class, 'retryPayment']);
+        
+        // Design Proof Routes (Customer)
+        Route::get('/design-proofs', [Customer\DesignProofController::class, 'index']);
+        Route::get('/orders/{order}/design-proofs', [Customer\DesignProofController::class, 'getByOrder']);
+        Route::get('/design-proofs/{designProof}', [Customer\DesignProofController::class, 'show']);
+        Route::post('/design-proofs/{designProof}/approve', [Customer\DesignProofController::class, 'approve']);
+        Route::post('/design-proofs/{designProof}/request-revision', [Customer\DesignProofController::class, 'requestRevision']);
+        Route::post('/design-proofs/{designProof}/reject', [Customer\DesignProofController::class, 'reject']);
     });
 });
 
@@ -97,4 +105,11 @@ Route::prefix('v1/admin')
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+        
+        // Design Proof Routes (Admin)
+        Route::get('/design-proofs', [Admin\DesignProofController::class, 'index'])->name('design-proofs.index');
+        Route::post('/design-proofs', [Admin\DesignProofController::class, 'store'])->name('design-proofs.store');
+        Route::get('/design-proofs/{designProof}', [Admin\DesignProofController::class, 'show'])->name('design-proofs.show');
+        Route::delete('/design-proofs/{designProof}', [Admin\DesignProofController::class, 'destroy'])->name('design-proofs.destroy');
+        Route::get('/order-items/{orderItem}/design-proofs', [Admin\DesignProofController::class, 'getByOrderItem'])->name('order-items.design-proofs');
     });
