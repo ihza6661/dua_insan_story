@@ -15,6 +15,7 @@ class AttributeService
     public function updateAttribute(Attribute $attribute, array $data): Attribute
     {
         $attribute->update($data);
+
         return $attribute;
     }
 

@@ -40,6 +40,7 @@ class ProductVariantService
     public function updateVariant(ProductVariant $variant, array $data): ProductVariant
     {
         $variant->update($data);
+
         return $variant->fresh(['options.attribute', 'images']);
     }
 

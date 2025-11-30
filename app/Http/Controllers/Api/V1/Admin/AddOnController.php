@@ -28,6 +28,7 @@ class AddOnController extends Controller
     public function store(StoreRequest $request): JsonResponse
     {
         $addOn = $this->addOnService->createAddOn($request->validated());
+
         return response()->json([
             'message' => 'Item tambahan berhasil dibuat.',
             'data' => new AddOnResource($addOn),
@@ -42,6 +43,7 @@ class AddOnController extends Controller
     public function update(UpdateRequest $request, AddOn $addOn): JsonResponse
     {
         $updatedAddOn = $this->addOnService->updateAddOn($addOn, $request->validated());
+
         return response()->json([
             'message' => 'Item tambahan berhasil diperbarui.',
             'data' => new AddOnResource($updatedAddOn),

@@ -24,7 +24,7 @@ class DesignProofService
 
         // Store the file
         $path = $file->store('design-proofs', 'public');
-        
+
         // Generate thumbnail if it's an image
         $thumbnailPath = null;
         if (str_starts_with($file->getMimeType(), 'image/')) {
@@ -52,12 +52,12 @@ class DesignProofService
     protected function generateThumbnail(string $path): string
     {
         $fullPath = Storage::disk('public')->path($path);
-        $thumbnailPath = 'design-proofs/thumbnails/' . basename($path);
+        $thumbnailPath = 'design-proofs/thumbnails/'.basename($path);
         $thumbnailFullPath = Storage::disk('public')->path($thumbnailPath);
 
         // Create thumbnails directory if it doesn't exist
         $thumbnailDir = dirname($thumbnailFullPath);
-        if (!file_exists($thumbnailDir)) {
+        if (! file_exists($thumbnailDir)) {
             mkdir($thumbnailDir, 0755, true);
         }
 
@@ -90,7 +90,7 @@ class DesignProofService
                 return;
         }
 
-        if (!$sourceImage) {
+        if (! $sourceImage) {
             return;
         }
 
@@ -100,8 +100,8 @@ class DesignProofService
 
         // Calculate aspect ratio
         $ratio = min($width / $origWidth, $height / $origHeight);
-        $newWidth = (int)($origWidth * $ratio);
-        $newHeight = (int)($origHeight * $ratio);
+        $newWidth = (int) ($origWidth * $ratio);
+        $newHeight = (int) ($origHeight * $ratio);
 
         // Create new image
         $thumbnail = imagecreatetruecolor($newWidth, $newHeight);

@@ -1,22 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\RajaOngkirController;
 use App\Http\Controllers\Api\V1\Admin;
-use App\Http\Controllers\Api\V1\Customer;
+use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Api\V1\Admin\SettingController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CartItemController;
 use App\Http\Controllers\Api\V1\CheckoutController;
-use App\Http\Controllers\Api\V1\WebhookController;
-use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\Customer;
 use App\Http\Controllers\Api\V1\OrderController;
-use App\Http\Controllers\Api\RajaOngkirController;
-use App\Http\Controllers\Api\V1\Admin\OrderController as AdminOrderController;
-use App\Http\Controllers\Api\V1\Admin\DashboardController;
-use App\Http\Controllers\Api\V1\Admin\SettingController;
+use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\WebhookController;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\Route;
 
 Route::post('/v1/webhook/midtrans', [WebhookController::class, 'midtrans']);
 Route::post('/v1/checkout', [CheckoutController::class, 'store']);
@@ -71,7 +69,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);
         Route::post('/orders/{order}/retry-payment', [OrderController::class, 'retryPayment']);
-        
+
         // Design Proof Routes (Customer)
         Route::get('/design-proofs', [Customer\DesignProofController::class, 'index']);
         Route::get('/orders/{order}/design-proofs', [Customer\DesignProofController::class, 'getByOrder']);
@@ -105,7 +103,7 @@ Route::prefix('v1/admin')
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-        
+
         // Design Proof Routes (Admin)
         Route::get('/design-proofs', [Admin\DesignProofController::class, 'index'])->name('design-proofs.index');
         Route::post('/design-proofs', [Admin\DesignProofController::class, 'store'])->name('design-proofs.store');

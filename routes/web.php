@@ -10,7 +10,7 @@ Route::get('/', function () {
 Route::get('/media/{path}', function (string $path) {
     $relativePath = ltrim($path, '/');
 
-    if (!Storage::disk('public')->exists($relativePath)) {
+    if (! Storage::disk('public')->exists($relativePath)) {
         abort(404);
     }
 

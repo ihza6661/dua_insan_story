@@ -3,18 +3,22 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\CheckoutService;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Repositories\Contracts\CartRepositoryInterface;
+use App\Services\CheckoutService;
+use Illuminate\Http\Request;
 
 class WebhookController extends Controller
 {
     protected $checkoutService;
 
-    public function __construct(CheckoutService $checkoutService)
+    protected CartRepositoryInterface $cartRepository;
+
+    public function __construct(CheckoutService $checkoutService, CartRepositoryInterface $cartRepository)
     {
         $this->checkoutService = $checkoutService;
+        $this->cartRepository = $cartRepository;
     }
 
     private function resolvePaymentByOrderId(string $orderId): ?Payment
@@ -29,6 +33,7 @@ class WebhookController extends Controller
         // If not found, check if the order_id has a suffix (e.g., from Midtrans sandbox)
         if (str_contains($orderId, '-')) {
             $transactionId = explode('-', $orderId)[0];
+
             return Payment::where('transaction_id', $transactionId)->first();
         }
 
@@ -43,38 +48,42 @@ class WebhookController extends Controller
             // Log the incoming payload for debugging
             \Log::info('Midtrans Webhook Payload:', $payload);
 
-            if (!isset($payload['order_id'], $payload['status_code'], $payload['gross_amount'], $payload['signature_key'])) {
+            if (! isset($payload['order_id'], $payload['status_code'], $payload['gross_amount'], $payload['signature_key'])) {
                 \Log::warning('Midtrans Webhook: Missing required fields.', ['payload' => $payload]);
+
                 return response()->json(['status' => 'error', 'message' => 'Invalid payload'], 400);
             }
 
             // Validate signature key
-            $signatureKey = hash('sha512', $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . config('midtrans.server_key'));
+            $signatureKey = hash('sha512', $payload['order_id'].$payload['status_code'].$payload['gross_amount'].config('midtrans.server_key'));
 
             \Log::info('Midtrans Signature Validation:', [
                 'generated_signature' => $signatureKey,
                 'payload_signature' => $payload['signature_key'],
             ]);
 
-            if (!hash_equals($signatureKey, $payload['signature_key'])) {
+            if (! hash_equals($signatureKey, $payload['signature_key'])) {
                 \Log::warning('Midtrans Webhook: Invalid signature key.', ['payload' => $payload]);
+
                 return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
             }
 
             $payment = $this->resolvePaymentByOrderId($payload['order_id']);
 
-            if (!$payment) {
+            if (! $payment) {
                 \Log::warning('Midtrans Webhook: Payment not found.', ['order_id' => $payload['order_id']]);
+
                 return response()->json(['status' => 'error', 'message' => 'Payment not found'], 404);
             }
 
             $order = $payment->order;
 
-            if (!$order) {
+            if (! $order) {
                 \Log::warning('Midtrans Webhook: Order missing for payment.', [
                     'order_id' => $payload['order_id'],
                     'payment_id' => $payment->id,
                 ]);
+
                 return response()->json(['status' => 'error', 'message' => 'Order not found'], 404);
             }
 
@@ -130,17 +139,16 @@ class WebhookController extends Controller
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
-            \Log::error('Midtrans Webhook Error: ' . $e->getMessage(), [
+            \Log::error('Midtrans Webhook Error: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
-                'payload' => $request->all()
+                'payload' => $request->all(),
             ]);
+
             return response()->json(['status' => 'error', 'message' => 'Internal Server Error'], 500);
         }
     }
-
-
 
     private function handleSuccessfulPayment(Order $order, Payment $payment, array $payload): void
     {
@@ -152,16 +160,19 @@ class WebhookController extends Controller
             return;
         }
 
-    $this->updatePaymentStatus($payment, 'paid', $payload);
+        $this->updatePaymentStatus($payment, 'paid', $payload);
 
-    $isDownPayment = $payment->payment_type === 'dp';
-    $orderStatus = $isDownPayment ? 'Partially Paid' : 'Paid';
-    $paymentStatus = $isDownPayment ? 'partially_paid' : 'paid';
+        $isDownPayment = $payment->payment_type === 'dp';
+        $orderStatus = $isDownPayment ? 'Partially Paid' : 'Paid';
+        $paymentStatus = $isDownPayment ? 'partially_paid' : 'paid';
 
-    $this->updateOrderStatus($order, $orderStatus, $paymentStatus);
+        $this->updateOrderStatus($order, $orderStatus, $paymentStatus);
 
         if ($order->customer) {
-            $this->checkoutService->clearCart($order->customer);
+            $cart = $this->cartRepository->findByUser($order->customer);
+            if ($cart) {
+                $this->cartRepository->clearItems($cart);
+            }
         }
     }
 

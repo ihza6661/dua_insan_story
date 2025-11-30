@@ -19,12 +19,14 @@ class ProductCategoryController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $categories = $this->categoryService->getAllCategories();
+
         return ProductCategoryResource::collection($categories);
     }
 
     public function show(string $id): ProductCategoryResource
     {
-        $category = $this->categoryService->findCategoryById((int)$id);
+        $category = $this->categoryService->findCategoryById((int) $id);
+
         return new ProductCategoryResource($category);
     }
 }

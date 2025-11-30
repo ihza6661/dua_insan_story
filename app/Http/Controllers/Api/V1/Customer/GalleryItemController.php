@@ -27,7 +27,7 @@ class GalleryItemController extends Controller
 
     public function show(string $id): GalleryItemResource
     {
-        $galleryItem = $this->galleryItemService->findItemById((int)$id);
+        $galleryItem = $this->galleryItemService->findItemById((int) $id);
         $galleryItem->load('product');
 
         return new GalleryItemResource($galleryItem);

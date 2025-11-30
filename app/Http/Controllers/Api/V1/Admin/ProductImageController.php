@@ -46,12 +46,12 @@ class ProductImageController extends Controller
             }
 
             return response()->json([
-                'message' => count($uploadedImages) . ' gambar berhasil diunggah ke varian.',
+                'message' => count($uploadedImages).' gambar berhasil diunggah ke varian.',
                 'data' => ProductImageResource::collection($uploadedImages),
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Gagal mengunggah gambar: ' . $e->getMessage(),
+                'message' => 'Gagal mengunggah gambar: '.$e->getMessage(),
             ], 500);
         }
     }

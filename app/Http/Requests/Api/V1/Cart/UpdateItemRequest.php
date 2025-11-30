@@ -16,6 +16,7 @@ class UpdateItemRequest extends FormRequest
         }
 
         $sessionId = $this->header('X-Session-ID');
+
         return $cartItem->cart->session_id === $sessionId;
     }
 

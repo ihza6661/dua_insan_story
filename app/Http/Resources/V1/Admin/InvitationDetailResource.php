@@ -4,7 +4,6 @@ namespace App\Http\Resources\V1\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
 class InvitationDetailResource extends JsonResource
@@ -30,7 +29,7 @@ class InvitationDetailResource extends JsonResource
             'reception_time' => $this->reception_time,
             'reception_location' => $this->reception_location,
             'gmaps_link' => $this->gmaps_link,
-            'prewedding_photo' => $this->when($this->prewedding_photo_path, 
+            'prewedding_photo' => $this->when($this->prewedding_photo_path,
                 fn () => URL::route('media.stream', ['path' => $this->prewedding_photo_path])),
         ];
     }

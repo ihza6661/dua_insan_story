@@ -21,12 +21,14 @@ class ProductAddOnController extends Controller
     public function store(StoreRequest $request, Product $product): JsonResponse
     {
         $this->productAddOnService->attachAddOn($product, $request->validated());
+
         return response()->json(['message' => 'Item tambahan berhasil ditautkan ke produk.']);
     }
 
     public function destroy(Product $product, AddOn $addOn): JsonResponse
     {
         $this->productAddOnService->detachAddOn($product, $addOn);
+
         return response()->json(['message' => 'Tautan item tambahan berhasil dihapus dari produk.']);
     }
 }

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('product_add_ons')) {
+        if (! Schema::hasTable('product_add_ons')) {
             Schema::create('product_add_ons', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('product_id')->constrained('products');

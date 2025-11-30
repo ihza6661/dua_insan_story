@@ -25,6 +25,7 @@ class UserController extends Controller
     {
         $role = $request->query('role', 'admin');
         $users = User::where('role', $role)->latest()->get();
+
         return UserResource::collection($users);
     }
 
@@ -36,7 +37,7 @@ class UserController extends Controller
         $user = $this->userService->createUser($validatedData, $role);
 
         return response()->json([
-            'message' => 'Akun ' . $role . ' berhasil dibuat.',
+            'message' => 'Akun '.$role.' berhasil dibuat.',
             'data' => new UserResource($user),
         ], 201);
     }
@@ -49,6 +50,7 @@ class UserController extends Controller
     public function update(UpdateRequest $request, User $user): JsonResponse
     {
         $admin = $this->userService->updateAdminUser($user, $request->validated());
+
         return response()->json([
             'message' => 'Akun admin berhasil diperbarui.',
             'data' => new UserResource($admin),

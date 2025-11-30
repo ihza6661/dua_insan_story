@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('payments', 'snap_token')) {
+        if (! Schema::hasColumn('payments', 'snap_token')) {
             Schema::table('payments', function (Blueprint $table) {
                 $table->string('snap_token')->nullable()->after('status');
             });

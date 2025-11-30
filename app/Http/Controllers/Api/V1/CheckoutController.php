@@ -5,17 +5,35 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Checkout\StoreRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
 use App\Services\CheckoutService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Order;
 
+/**
+ * Class CheckoutController
+ *
+ * Handles checkout and payment operations.
+ */
 class CheckoutController extends Controller
 {
-    public function store(StoreRequest $request, CheckoutService $checkoutService): JsonResponse
+    use AuthorizesRequests;
+
+    /**
+     * CheckoutController constructor.
+     */
+    public function __construct(
+        protected CheckoutService $checkoutService
+    ) {}
+
+    /**
+     * Process checkout and create order.
+     */
+    public function store(StoreRequest $request): JsonResponse
     {
         try {
-            $order = $checkoutService->processCheckout($request);
+            $order = $this->checkoutService->processCheckout($request);
             $order->load('items.product', 'invitationDetail');
 
             return response()->json([
@@ -28,25 +46,34 @@ class CheckoutController extends Controller
         }
     }
 
-    public function calculateShippingCost(Request $request, CheckoutService $checkoutService): JsonResponse
+    /**
+     * Calculate shipping cost for cart items.
+     */
+    public function calculateShippingCost(Request $request): JsonResponse
     {
         try {
-            $cost = $checkoutService->calculateShippingCost($request);
+            $cost = $this->checkoutService->calculateShippingCost($request);
+
             return response()->json($cost);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }
 
-    public function initiateFinalPayment(Request $request, Order $order, CheckoutService $checkoutService): JsonResponse
+    /**
+     * Initiate final payment for partially paid order.
+     *
+     * @param  Request  $request
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function initiateFinalPayment(Order $order): JsonResponse
     {
-        try {
-            // Ensure the user is authorized to pay for this order
-            if ($request->user()->id !== $order->customer_id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
+        // Use Policy for authorization instead of manual check
+        $this->authorize('pay', $order);
 
-            $snapToken = $checkoutService->initiateFinalPayment($order);
+        try {
+            $snapToken = $this->checkoutService->initiateFinalPayment($order);
 
             return response()->json([
                 'message' => 'Final payment initiated. Please complete the payment.',

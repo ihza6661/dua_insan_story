@@ -12,7 +12,7 @@ class ProductImageResource extends JsonResource
         if ($this->resource === null) {
             return [];
         }
-        
+
         return [
             'id' => $this->id,
             'image' => $this->image,

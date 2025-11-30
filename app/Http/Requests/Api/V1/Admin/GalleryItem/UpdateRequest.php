@@ -23,7 +23,7 @@ class UpdateRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png,webp,mp4,mov,avi',
-                'max:20480' // 20MB Max
+                'max:20480', // 20MB Max
             ],
         ];
     }

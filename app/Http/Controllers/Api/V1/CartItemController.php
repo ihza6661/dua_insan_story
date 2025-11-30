@@ -22,7 +22,7 @@ class CartItemController extends Controller
             ->response()
             ->setStatusCode(201);
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $response->header('X-Session-ID', $cart->session_id);
         }
 
@@ -32,6 +32,7 @@ class CartItemController extends Controller
     public function update(UpdateItemRequest $request, CartItem $cartItem, CartService $cartService): CartResource
     {
         $cart = $cartService->updateItemQuantity($cartItem->id, $request->validated()['quantity']);
+
         return new CartResource($cart);
     }
 
@@ -46,7 +47,7 @@ class CartItemController extends Controller
             $canDelete = $cartItem->cart->session_id === $sessionId;
         }
 
-        if (!$canDelete) {
+        if (! $canDelete) {
             return response()->json(['message' => 'Aksi tidak diizinkan.'], 403);
         }
 

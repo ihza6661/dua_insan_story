@@ -45,6 +45,7 @@ class InvitationDetail extends Model
             set: function (string $value) {
                 preg_match('/(\d{2}[\.:]\d{2})/u', $value, $matches);
                 $time = $matches[1] ?? '00:00';
+
                 return str_replace('.', ':', $time);
             },
         );
@@ -56,6 +57,7 @@ class InvitationDetail extends Model
             set: function (string $value) {
                 preg_match('/(\d{2}[\.:]\d{2})/u', $value, $matches);
                 $time = $matches[1] ?? '00:00';
+
                 return str_replace('.', ':', $time);
             },
         );
