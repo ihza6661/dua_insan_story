@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('product_images', function (Blueprint $table) {
-            // Add product_id column after id
-            $table->foreignId('product_id')->after('id')->constrained()->onDelete('cascade');
+            // Add product_id column after id only if it doesn't exist
+            if (! Schema::hasColumn('product_images', 'product_id')) {
+                $table->foreignId('product_id')->after('id')->constrained()->onDelete('cascade');
+            }
         });
     }
 

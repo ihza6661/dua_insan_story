@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,9 +24,6 @@ return new class extends Migration
             // Add thumbnail for quick preview
             $table->string('thumbnail_url')->nullable()->after('file_size');
 
-            // Enhanced status with rejected option
-            $table->enum('status', ['pending_approval', 'approved', 'revision_requested', 'rejected'])->default('pending_approval')->change();
-
             // Add reviewed_at timestamp
             $table->timestamp('reviewed_at')->nullable()->after('status');
             $table->foreignId('reviewed_by')->nullable()->after('reviewed_at')->constrained('users')->nullOnDelete();
@@ -34,6 +32,17 @@ return new class extends Migration
             $table->boolean('customer_notified')->default(false)->after('reviewed_by');
             $table->timestamp('customer_notified_at')->nullable()->after('customer_notified');
         });
+
+        // Enhanced status with rejected option - using raw SQL for PostgreSQL compatibility
+        if (config('database.default') === 'pgsql') {
+            DB::statement("ALTER TABLE design_proofs DROP CONSTRAINT IF EXISTS design_proofs_status_check");
+            DB::statement("ALTER TABLE design_proofs ADD CONSTRAINT design_proofs_status_check CHECK (status IN ('pending_approval', 'approved', 'revision_requested', 'rejected'))");
+        } else {
+            // MySQL/MariaDB
+            Schema::table('design_proofs', function (Blueprint $table) {
+                $table->enum('status', ['pending_approval', 'approved', 'revision_requested', 'rejected'])->default('pending_approval')->change();
+            });
+        }
     }
 
     /**
