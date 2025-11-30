@@ -43,6 +43,7 @@ class DesignProofService
             'thumbnail_url' => $thumbnailPath,
             'status' => DesignProof::STATUS_PENDING,
             'admin_notes' => $adminNotes,
+            'customer_notified' => false,
         ]);
     }
 
