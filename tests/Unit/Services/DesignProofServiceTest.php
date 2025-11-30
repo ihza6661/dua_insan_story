@@ -199,12 +199,7 @@ class DesignProofServiceTest extends TestCase
         $file = UploadedFile::fake()->image('design.jpg');
         $designProof = $this->service->uploadDesignProof($orderItem, $file, $admin);
 
-        $this->assertFalse($designProof->customer_notified);
-        $this->assertNull($designProof->customer_notified_at);
-
-        $this->service->markCustomerNotified($designProof);
-        $designProof->refresh();
-
+        // After upload, customer should already be notified (email sent automatically)
         $this->assertTrue($designProof->customer_notified);
         $this->assertNotNull($designProof->customer_notified_at);
     }

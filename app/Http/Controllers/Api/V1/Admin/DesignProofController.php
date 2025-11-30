@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\Admin\GetDesignProofsRequest;
+use App\Http\Requests\Api\Admin\StoreDesignProofRequest;
 use App\Models\DesignProof;
 use App\Models\OrderItem;
 use App\Services\DesignProofService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class DesignProofController extends Controller
 {
@@ -19,21 +19,10 @@ class DesignProofController extends Controller
     /**
      * Get all design proofs for an order
      */
-    public function index(Request $request): JsonResponse
+    public function index(GetDesignProofsRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'order_id' => 'required|exists:orders,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $designProofs = $this->designProofService->getDesignProofsForOrder(
-            $request->input('order_id')
+            $request->validated('order_id')
         );
 
         return response()->json([
@@ -45,29 +34,17 @@ class DesignProofController extends Controller
     /**
      * Upload a new design proof
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreDesignProofRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'order_item_id' => 'required|exists:order_items,id',
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240', // Max 10MB
-            'admin_notes' => 'nullable|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         try {
-            $orderItem = OrderItem::findOrFail($request->input('order_item_id'));
+            $validated = $request->validated();
+            $orderItem = OrderItem::findOrFail($validated['order_item_id']);
 
             $designProof = $this->designProofService->uploadDesignProof(
                 $orderItem,
                 $request->file('file'),
                 $request->user(),
-                $request->input('admin_notes')
+                $validated['admin_notes'] ?? null
             );
 
             return response()->json([

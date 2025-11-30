@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\DesignProofReviewed;
+use App\Mail\DesignProofUploaded;
 use App\Models\DesignProof;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class DesignProofService
@@ -32,7 +35,7 @@ class DesignProofService
         }
 
         // Create the design proof record
-        return DesignProof::create([
+        $designProof = DesignProof::create([
             'order_item_id' => $orderItem->id,
             'uploaded_by' => $uploadedBy->id,
             'version' => $version,
@@ -45,6 +48,16 @@ class DesignProofService
             'admin_notes' => $adminNotes,
             'customer_notified' => false,
         ]);
+
+        // Send email notification to customer
+        $designProof->load(['orderItem.order.customer', 'orderItem.product', 'orderItem.variant']);
+        Mail::to($designProof->orderItem->order->customer->email)
+            ->queue(new DesignProofUploaded($designProof));
+
+        // Mark as notified
+        $this->markCustomerNotified($designProof);
+
+        return $designProof;
     }
 
     /**
@@ -156,7 +169,14 @@ class DesignProofService
             'reviewed_by' => $reviewedBy->id,
         ]);
 
-        return $designProof->fresh();
+        $designProof = $designProof->fresh();
+
+        // Send email notification to customer
+        $designProof->load(['orderItem.order.customer', 'orderItem.product', 'orderItem.variant']);
+        Mail::to($designProof->orderItem->order->customer->email)
+            ->queue(new DesignProofReviewed($designProof));
+
+        return $designProof;
     }
 
     /**
@@ -174,7 +194,14 @@ class DesignProofService
             'customer_feedback' => $feedback,
         ]);
 
-        return $designProof->fresh();
+        $designProof = $designProof->fresh();
+
+        // Send email notification to admin/uploader
+        $designProof->load(['orderItem.order.customer', 'orderItem.product', 'orderItem.variant', 'uploadedBy']);
+        Mail::to($designProof->uploadedBy->email)
+            ->queue(new DesignProofReviewed($designProof));
+
+        return $designProof;
     }
 
     /**
@@ -192,7 +219,14 @@ class DesignProofService
             'customer_feedback' => $reason,
         ]);
 
-        return $designProof->fresh();
+        $designProof = $designProof->fresh();
+
+        // Send email notification to admin/uploader
+        $designProof->load(['orderItem.order.customer', 'orderItem.product', 'orderItem.variant', 'uploadedBy']);
+        Mail::to($designProof->uploadedBy->email)
+            ->queue(new DesignProofReviewed($designProof));
+
+        return $designProof;
     }
 
     /**

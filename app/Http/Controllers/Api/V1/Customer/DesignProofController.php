@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\Customer\RejectDesignProofRequest;
+use App\Http\Requests\Api\Customer\RequestRevisionRequest;
 use App\Models\DesignProof;
 use App\Models\Order;
 use App\Services\DesignProofService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class DesignProofController extends Controller
 {
@@ -111,7 +112,7 @@ class DesignProofController extends Controller
     /**
      * Request revision for a design proof
      */
-    public function requestRevision(Request $request, DesignProof $designProof): JsonResponse
+    public function requestRevision(RequestRevisionRequest $request, DesignProof $designProof): JsonResponse
     {
         // Ensure the design proof belongs to the customer's order
         $orderItem = $designProof->orderItem()->with('order')->first();
@@ -122,22 +123,12 @@ class DesignProofController extends Controller
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'feedback' => 'required|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         try {
+            $validated = $request->validated();
             $updatedProof = $this->designProofService->requestRevision(
                 $designProof,
                 $request->user(),
-                $request->input('feedback')
+                $validated['feedback']
             );
 
             return response()->json([
@@ -155,7 +146,7 @@ class DesignProofController extends Controller
     /**
      * Reject a design proof
      */
-    public function reject(Request $request, DesignProof $designProof): JsonResponse
+    public function reject(RejectDesignProofRequest $request, DesignProof $designProof): JsonResponse
     {
         // Ensure the design proof belongs to the customer's order
         $orderItem = $designProof->orderItem()->with('order')->first();
@@ -166,22 +157,12 @@ class DesignProofController extends Controller
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'reason' => 'required|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         try {
+            $validated = $request->validated();
             $updatedProof = $this->designProofService->rejectDesignProof(
                 $designProof,
                 $request->user(),
-                $request->input('reason')
+                $validated['reason']
             );
 
             return response()->json([
