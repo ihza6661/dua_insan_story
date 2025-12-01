@@ -5,43 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Confirmation</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Jost', Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: hsl(20, 20%, 25%);
+            background-color: hsl(40, 30%, 97%);
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
         }
+        .email-wrapper {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
         .header {
-            background-color: #4F46E5;
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, hsl(20, 25%, 22%) 0%, hsl(20, 25%, 28%) 100%);
+            color: hsl(40, 30%, 97%);
+            padding: 40px 20px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
+        }
+        .brand-name {
+            font-style: italic;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
         }
         .header h1 {
             margin: 0;
             font-size: 28px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.95;
+            font-weight: 300;
         }
         .content {
-            background-color: #f9f9f9;
-            padding: 30px;
-            border: 1px solid #ddd;
-            border-radius: 0 0 5px 5px;
+            background-color: hsl(40, 30%, 97%);
+            padding: 35px 30px;
         }
         .order-summary {
             background-color: white;
-            padding: 20px;
-            border-left: 4px solid #4F46E5;
-            margin: 20px 0;
+            padding: 25px;
+            border-left: 4px solid hsl(35, 45%, 58%);
+            margin: 25px 0;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
         .order-summary h3 {
             margin-top: 0;
-            color: #4F46E5;
+            color: hsl(20, 25%, 22%);
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         .order-item {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid hsl(30, 15%, 88%);
             padding: 15px 0;
         }
         .order-item:last-child {
@@ -50,34 +74,49 @@
         .total-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            font-weight: bold;
+            padding: 15px 0 10px;
+            font-weight: 600;
             font-size: 18px;
-            color: #4F46E5;
-            border-top: 2px solid #4F46E5;
-            margin-top: 10px;
+            color: hsl(20, 25%, 22%);
+            border-top: 2px solid hsl(35, 45%, 58%);
+            margin-top: 15px;
         }
         .button {
             display: inline-block;
-            background-color: #4F46E5;
-            color: white;
+            background: hsl(20, 25%, 22%);
+            color: hsl(40, 30%, 97%);
             padding: 14px 35px;
             text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: bold;
+            border-radius: 6px;
+            margin: 25px 0;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: background 0.3s ease;
+        }
+        .button:hover {
+            background: hsl(20, 25%, 28%);
         }
         .info-box {
-            background-color: #E0F2FE;
-            border-left: 4px solid #0EA5E9;
-            padding: 15px;
-            margin: 20px 0;
+            background-color: hsl(40, 40%, 96%);
+            border-left: 4px solid hsl(35, 45%, 58%);
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
         }
         .footer {
             text-align: center;
-            margin-top: 30px;
+            padding: 25px 20px;
+            background-color: hsl(40, 25%, 88%);
             font-size: 12px;
-            color: #777;
+            color: hsl(20, 15%, 55%);
+        }
+        .footer-brand {
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: hsl(20, 25%, 22%);
+            margin-top: 10px;
         }
         table {
             width: 100%;
@@ -88,15 +127,17 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>✓ Order Confirmed!</h1>
-        <p style="margin: 10px 0 0 0;">Thank you for your order</p>
-    </div>
-    
-    <div class="content">
-        <p>Hi {{ $customer->full_name }},</p>
+    <div class="email-wrapper">
+        <div class="header">
+            <div class="brand-name">DuaInsan.Story</div>
+            <h1>✓ Order Confirmed!</h1>
+            <p>Thank you for your order</p>
+        </div>
         
-        <p>Your order has been successfully placed! We're excited to create your beautiful wedding invitations.</p>
+        <div class="content">
+            <p>Hi {{ $customer->full_name }},</p>
+            
+            <p>Your order has been successfully placed! We're excited to create your beautiful wedding invitations.</p>
         
         <div class="order-summary">
             <h3>Order Details</h3>
@@ -194,16 +235,18 @@
                 View Order Details
             </a>
         </center>
+            
+            <p>If you have any questions about your order, please don't hesitate to contact us.</p>
+            
+            <p style="margin-top: 30px;">Best regards,<br>
+            <strong>Dua Insan Story Team</strong></p>
+        </div>
         
-        <p>If you have any questions about your order, please don't hesitate to contact us.</p>
-        
-        <p>Best regards,<br>
-        <strong>Dua Insan Story Team</strong></p>
-    </div>
-    
-    <div class="footer">
-        <p>&copy; {{ date('Y') }} Dua Insan Story. All rights reserved.</p>
-        <p>You're receiving this email because you placed an order on our website.</p>
+        <div class="footer">
+            <p>&copy; {{ date('Y') }} Dua Insan Story. All rights reserved.</p>
+            <p style="margin-top: 8px;">You're receiving this email because you placed an order on our website.</p>
+            <div class="footer-brand">DuaInsan.Story</div>
+        </div>
     </div>
 </body>
 </html>
