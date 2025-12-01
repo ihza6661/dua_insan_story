@@ -35,7 +35,7 @@ return new class extends Migration
 
         // Enhanced status with rejected option - using raw SQL for PostgreSQL compatibility
         if (config('database.default') === 'pgsql') {
-            DB::statement("ALTER TABLE design_proofs DROP CONSTRAINT IF EXISTS design_proofs_status_check");
+            DB::statement('ALTER TABLE design_proofs DROP CONSTRAINT IF EXISTS design_proofs_status_check');
             DB::statement("ALTER TABLE design_proofs ADD CONSTRAINT design_proofs_status_check CHECK (status IN ('pending_approval', 'approved', 'revision_requested', 'rejected'))");
         } else {
             // MySQL/MariaDB

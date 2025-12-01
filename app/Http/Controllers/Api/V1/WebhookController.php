@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentConfirmed;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Repositories\Contracts\CartRepositoryInterface;
 use App\Services\CheckoutService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class WebhookController extends Controller
 {
@@ -45,11 +48,10 @@ class WebhookController extends Controller
         try {
             $payload = $request->all();
 
-            // Log the incoming payload for debugging
-            \Log::info('Midtrans Webhook Payload:', $payload);
+            Log::info('Midtrans Webhook Payload:', $payload);
 
             if (! isset($payload['order_id'], $payload['status_code'], $payload['gross_amount'], $payload['signature_key'])) {
-                \Log::warning('Midtrans Webhook: Missing required fields.', ['payload' => $payload]);
+                Log::warning('Midtrans Webhook: Missing required fields.', ['payload' => $payload]);
 
                 return response()->json(['status' => 'error', 'message' => 'Invalid payload'], 400);
             }
@@ -57,13 +59,13 @@ class WebhookController extends Controller
             // Validate signature key
             $signatureKey = hash('sha512', $payload['order_id'].$payload['status_code'].$payload['gross_amount'].config('midtrans.server_key'));
 
-            \Log::info('Midtrans Signature Validation:', [
+            Log::info('Midtrans Signature Validation:', [
                 'generated_signature' => $signatureKey,
                 'payload_signature' => $payload['signature_key'],
             ]);
 
             if (! hash_equals($signatureKey, $payload['signature_key'])) {
-                \Log::warning('Midtrans Webhook: Invalid signature key.', ['payload' => $payload]);
+                Log::warning('Midtrans Webhook: Invalid signature key.', ['payload' => $payload]);
 
                 return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
             }
@@ -71,7 +73,7 @@ class WebhookController extends Controller
             $payment = $this->resolvePaymentByOrderId($payload['order_id']);
 
             if (! $payment) {
-                \Log::warning('Midtrans Webhook: Payment not found.', ['order_id' => $payload['order_id']]);
+                Log::warning('Midtrans Webhook: Payment not found.', ['order_id' => $payload['order_id']]);
 
                 return response()->json(['status' => 'error', 'message' => 'Payment not found'], 404);
             }
@@ -79,7 +81,7 @@ class WebhookController extends Controller
             $order = $payment->order;
 
             if (! $order) {
-                \Log::warning('Midtrans Webhook: Order missing for payment.', [
+                Log::warning('Midtrans Webhook: Order missing for payment.', [
                     'order_id' => $payload['order_id'],
                     'payment_id' => $payment->id,
                 ]);
@@ -95,40 +97,40 @@ class WebhookController extends Controller
                 case 'settlement':
                     if ($fraudStatus === 'accept') {
                         $this->handleSuccessfulPayment($order, $payment, $payload);
-                        \Log::info('Midtrans Webhook: Payment settled.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                        Log::info('Midtrans Webhook: Payment settled.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     } elseif ($fraudStatus === 'challenge') {
                         $this->updatePaymentStatus($payment, 'pending', $payload);
                         $this->updateOrderStatus($order, 'Pending Payment', 'pending');
-                        \Log::info('Midtrans Webhook: Payment challenged, marked pending.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                        Log::info('Midtrans Webhook: Payment challenged, marked pending.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     } else {
                         $this->updatePaymentStatus($payment, 'failed', $payload);
                         $this->updateOrderStatus($order, 'Failed', 'failed');
-                        \Log::info('Midtrans Webhook: Payment rejected after capture.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                        Log::info('Midtrans Webhook: Payment rejected after capture.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     }
                     break;
                 case 'pending':
                     $this->updatePaymentStatus($payment, 'pending', $payload);
                     $this->updateOrderStatus($order, 'Pending Payment', 'pending');
-                    \Log::info('Midtrans Webhook: Order and payment marked pending.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                    Log::info('Midtrans Webhook: Order and payment marked pending.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     break;
                 case 'deny':
                     $this->updatePaymentStatus($payment, 'failed', $payload);
                     $this->updateOrderStatus($order, 'Failed', 'failed');
-                    \Log::info('Midtrans Webhook: Order and payment marked failed (deny).', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                    Log::info('Midtrans Webhook: Order and payment marked failed (deny).', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     break;
                 case 'cancel':
                 case 'expire':
                     $this->updatePaymentStatus($payment, 'cancelled', $payload);
                     $this->updateOrderStatus($order, 'Cancelled', 'cancelled');
-                    \Log::info('Midtrans Webhook: Order and payment marked cancelled/expired.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                    Log::info('Midtrans Webhook: Order and payment marked cancelled/expired.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     break;
                 case 'refund':
                     $this->updatePaymentStatus($payment, 'refunded', $payload);
                     $this->updateOrderStatus($order, 'Refunded', 'refunded');
-                    \Log::info('Midtrans Webhook: Order and payment marked refunded.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
+                    Log::info('Midtrans Webhook: Order and payment marked refunded.', ['order_id' => $order->id, 'payment_id' => $payment->id]);
                     break;
                 default:
-                    \Log::info('Midtrans Webhook: Unhandled transaction status.', [
+                    Log::info('Midtrans Webhook: Unhandled transaction status.', [
                         'order_id' => $order->id,
                         'payment_id' => $payment->id,
                         'transaction_status' => $transactionStatus,
@@ -139,7 +141,7 @@ class WebhookController extends Controller
 
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
-            \Log::error('Midtrans Webhook Error: '.$e->getMessage(), [
+            Log::error('Midtrans Webhook Error: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
@@ -153,7 +155,7 @@ class WebhookController extends Controller
     private function handleSuccessfulPayment(Order $order, Payment $payment, array $payload): void
     {
         if ($payment->status === 'paid') {
-            \Log::info('Midtrans Webhook: Payment already processed, skipping duplicate.', [
+            Log::info('Midtrans Webhook: Payment already processed, skipping duplicate.', [
                 'payment_id' => $payment->id,
             ]);
 
@@ -173,6 +175,10 @@ class WebhookController extends Controller
             if ($cart) {
                 $this->cartRepository->clearItems($cart);
             }
+
+            // Send payment confirmation email
+            $order->loadMissing('customer');
+            Mail::to($order->customer->email)->send(new PaymentConfirmed($order, $payment));
         }
     }
 

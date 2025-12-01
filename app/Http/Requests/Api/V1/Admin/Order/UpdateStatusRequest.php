@@ -32,6 +32,11 @@ class UpdateStatusRequest extends FormRequest
                 'string',
                 Rule::in(Order::getValidStatuses()),
             ],
+            'tracking_number' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
     }
 
