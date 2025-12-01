@@ -5,68 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Confirmed</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Jost', Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: hsl(20, 20%, 25%);
+            background-color: hsl(40, 30%, 97%);
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
         }
+        .email-wrapper {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
         .header {
-            background-color: #10B981;
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, hsl(35, 45%, 58%) 0%, hsl(35, 50%, 52%) 100%);
+            color: hsl(20, 25%, 22%);
+            padding: 40px 20px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
+        }
+        .brand-name {
+            font-style: italic;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            color: hsl(40, 30%, 97%);
         }
         .header h1 {
             margin: 0;
             font-size: 28px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.95;
+            font-weight: 300;
         }
         .content {
-            background-color: #f9f9f9;
-            padding: 30px;
-            border: 1px solid #ddd;
-            border-radius: 0 0 5px 5px;
+            background-color: hsl(40, 30%, 97%);
+            padding: 35px 30px;
         }
         .payment-summary {
             background-color: white;
-            padding: 20px;
-            border-left: 4px solid #10B981;
-            margin: 20px 0;
+            padding: 25px;
+            border-left: 4px solid hsl(35, 45%, 58%);
+            margin: 25px 0;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
         .payment-summary h3 {
             margin-top: 0;
-            color: #10B981;
+            color: hsl(20, 25%, 22%);
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         .button {
             display: inline-block;
-            background-color: #10B981;
-            color: white;
+            background: hsl(20, 25%, 22%);
+            color: hsl(40, 30%, 97%);
             padding: 14px 35px;
             text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: bold;
+            border-radius: 6px;
+            margin: 25px 0;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: background 0.3s ease;
+        }
+        .button:hover {
+            background: hsl(20, 25%, 28%);
         }
         .info-box {
-            background-color: #DCFCE7;
-            border-left: 4px solid #10B981;
-            padding: 15px;
-            margin: 20px 0;
+            background-color: hsl(120, 60%, 95%);
+            border-left: 4px solid hsl(35, 45%, 58%);
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
         }
         .warning-box {
-            background-color: #FEF3C7;
-            border-left: 4px solid #F59E0B;
-            padding: 15px;
-            margin: 20px 0;
+            background-color: hsl(45, 85%, 92%);
+            border-left: 4px solid hsl(38, 92%, 50%);
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
         }
         .footer {
             text-align: center;
-            margin-top: 30px;
+            padding: 25px 20px;
+            background-color: hsl(40, 25%, 88%);
             font-size: 12px;
-            color: #777;
+            color: hsl(20, 15%, 55%);
+        }
+        .footer-brand {
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: hsl(20, 25%, 22%);
+            margin-top: 10px;
         }
         table {
             width: 100%;
@@ -77,15 +118,17 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>💳 Payment Confirmed!</h1>
-        <p style="margin: 10px 0 0 0;">Your payment has been received</p>
-    </div>
-    
-    <div class="content">
-        <p>Hi {{ $customer->full_name }},</p>
+    <div class="email-wrapper">
+        <div class="header">
+            <div class="brand-name">DuaInsan.Story</div>
+            <h1>💳 Payment Confirmed!</h1>
+            <p>Your payment has been received</p>
+        </div>
         
-        <p>Great news! We've received your payment for order <strong>{{ $order->order_number }}</strong>.</p>
+        <div class="content">
+            <p>Hi {{ $customer->full_name }},</p>
+            
+            <p>Great news! We've received your payment for order <strong>{{ $order->order_number }}</strong>.</p>
         
         <div class="payment-summary">
             <h3>Payment Details</h3>
@@ -169,15 +212,17 @@
                 View Order Status
             </a>
         </center>
+            
+            <p>Thank you for your payment! If you have any questions, please contact us.</p>
+            
+            <p style="margin-top: 30px;">Best regards,<br>
+            <strong>Dua Insan Story Team</strong></p>
+        </div>
         
-        <p>Thank you for your payment! If you have any questions, please contact us.</p>
-        
-        <p>Best regards,<br>
-        <strong>Dua Insan Story Team</strong></p>
-    </div>
-    
-    <div class="footer">
-        <p>&copy; {{ date('Y') }} Dua Insan Story. All rights reserved.</p>
+        <div class="footer">
+            <p>&copy; {{ date('Y') }} Dua Insan Story. All rights reserved.</p>
+            <div class="footer-brand">DuaInsan.Story</div>
+        </div>
     </div>
 </body>
 </html>
