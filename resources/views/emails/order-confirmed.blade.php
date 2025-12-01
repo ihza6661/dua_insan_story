@@ -147,7 +147,7 @@
             @foreach($items as $item)
             <div class="order-item">
                 <strong>{{ $item->product->name }}</strong>
-                @if($item->variant)
+                @if($item->variant && $item->variant->name)
                     <br><small>Variant: {{ $item->variant->name }}</small>
                 @endif
                 <table style="margin-top: 10px;">
