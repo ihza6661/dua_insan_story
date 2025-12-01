@@ -102,8 +102,8 @@
             <h3>Order Details</h3>
             <p><strong>Order Number:</strong> {{ $order->order_number }}</p>
             <p><strong>Order Date:</strong> {{ $order->created_at->format('F d, Y H:i') }}</p>
-            <p><strong>Order Status:</strong> {{ $order->order_status }}</p>
-            <p><strong>Payment Status:</strong> {{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}</p>
+            <p><strong>Order Status:</strong> {{ $order->order_status ?? 'Pending Payment' }}</p>
+            <p><strong>Payment Status:</strong> {{ $order->payment_status ?? 'pending' }}</p>
         </div>
 
         @if($invitationDetail)
@@ -119,13 +119,25 @@
                     <td>{{ $invitationDetail->groom_full_name }}</td>
                 </tr>
                 <tr>
-                    <td><strong>Ceremony Date:</strong></td>
-                    <td>{{ \Carbon\Carbon::parse($invitationDetail->ceremony_date)->format('F d, Y') }}</td>
+                    <td><strong>Akad Date:</strong></td>
+                    <td>{{ \Carbon\Carbon::parse($invitationDetail->akad_date)->format('F d, Y') }}</td>
                 </tr>
+                @if($invitationDetail->akad_time)
                 <tr>
-                    <td><strong>Ceremony Time:</strong></td>
-                    <td>{{ $invitationDetail->ceremony_time }}</td>
+                    <td><strong>Akad Time:</strong></td>
+                    <td>{{ \Carbon\Carbon::parse($invitationDetail->akad_time)->format('H:i') }}</td>
                 </tr>
+                @endif
+                <tr>
+                    <td><strong>Reception Date:</strong></td>
+                    <td>{{ \Carbon\Carbon::parse($invitationDetail->reception_date)->format('F d, Y') }}</td>
+                </tr>
+                @if($invitationDetail->reception_time)
+                <tr>
+                    <td><strong>Reception Time:</strong></td>
+                    <td>{{ \Carbon\Carbon::parse($invitationDetail->reception_time)->format('H:i') }}</td>
+                </tr>
+                @endif
             </table>
         </div>
         @endif
@@ -145,11 +157,20 @@
                     </tr>
                     <tr>
                         <td><strong>Subtotal:</strong></td>
-                        <td class="text-right"><strong>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</strong></td>
+                        <td class="text-right"><strong>Rp {{ number_format($item->sub_total, 0, ',', '.') }}</strong></td>
                     </tr>
                 </table>
             </div>
             @endforeach
+            
+            <div class="order-item" style="border-bottom: none;">
+                <table>
+                    <tr>
+                        <td><strong>Shipping Cost:</strong></td>
+                        <td class="text-right"><strong>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</strong></td>
+                    </tr>
+                </table>
+            </div>
             
             <div class="total-row">
                 <span>Total Amount:</span>

@@ -122,21 +122,21 @@
                 </tr>
                 <tr>
                     <td><strong>Amount Paid:</strong></td>
-                    <td class="text-right">Rp {{ number_format($order->amount_paid, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($order->getAmountPaidAttribute(), 0, ',', '.') }}</td>
                 </tr>
                 <tr style="border-top: 2px solid #10B981;">
                     <td><strong>Remaining Balance:</strong></td>
-                    <td class="text-right"><strong>Rp {{ number_format($remainingBalance, 0, ',', '.') }}</strong></td>
+                    <td class="text-right"><strong>Rp {{ number_format($order->getRemainingBalanceAttribute(), 0, ',', '.') }}</strong></td>
                 </tr>
             </table>
         </div>
         
-        @if($remainingBalance > 0)
+        @if($order->getRemainingBalanceAttribute() > 0)
         <div class="warning-box">
             <strong>⚠️ Remaining Payment</strong>
             <p style="margin: 10px 0 0 0;">
                 You've paid a 50% down payment. The remaining balance of 
-                <strong>Rp {{ number_format($remainingBalance, 0, ',', '.') }}</strong> 
+                <strong>Rp {{ number_format($order->getRemainingBalanceAttribute(), 0, ',', '.') }}</strong> 
                 will need to be paid before we can ship your order.
             </p>
             <p style="margin: 10px 0 0 0;">
