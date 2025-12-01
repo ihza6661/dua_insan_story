@@ -77,6 +77,7 @@ class Order extends Model
         'shipping_method',
         'shipping_service',
         'courier',
+        'tracking_number',
         'snap_token',
         // Note: order_status and payment_status removed from fillable for security
     ];

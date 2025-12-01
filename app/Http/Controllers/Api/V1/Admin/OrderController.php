@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Admin\Order\UpdateStatusRequest;
 use App\Http\Resources\V1\Admin\OrderResource;
+use App\Mail\OrderDelivered;
+use App\Mail\OrderShipped;
+use App\Mail\OrderStatusChanged;
 use App\Models\Order;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Class OrderController
@@ -74,7 +78,39 @@ class OrderController extends Controller
     {
         $this->authorize('updateStatus', $order);
 
-        $order = $this->orderRepository->updateStatus($order, $request->input('status'));
+        $oldStatus = $order->order_status;
+        $newStatus = $request->input('status');
+        $trackingNumber = $request->input('tracking_number');
+
+        // Update tracking number if provided
+        if ($trackingNumber !== null) {
+            $order->tracking_number = $trackingNumber;
+        }
+
+        $order = $this->orderRepository->updateStatus($order, $newStatus);
+
+        // Load customer relationship for email
+        $order->load(['customer', 'items.product', 'invitationDetail']);
+
+        // Send appropriate email based on status change
+        if ($oldStatus !== $newStatus && $order->customer && $order->customer->email) {
+            $customerEmail = $order->customer->email;
+
+            // Send specific email for Shipped status
+            if ($newStatus === Order::STATUS_SHIPPED) {
+                Mail::to($customerEmail)->send(
+                    new OrderShipped($order, $order->tracking_number, $order->courier)
+                );
+            }
+            // Send specific email for Delivered status
+            elseif ($newStatus === Order::STATUS_DELIVERED) {
+                Mail::to($customerEmail)->send(new OrderDelivered($order));
+            }
+            // Send general status change email for other statuses
+            else {
+                Mail::to($customerEmail)->send(new OrderStatusChanged($order, $oldStatus, $newStatus));
+            }
+        }
 
         return new OrderResource($order);
     }

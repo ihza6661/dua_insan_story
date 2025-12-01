@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\DataTransferObjects\CheckoutData;
+use App\Mail\OrderConfirmed;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Class CheckoutService
@@ -73,6 +75,10 @@ class CheckoutService
 
             // Clear cart
             $this->clearCart($user, $cart);
+
+            // Send order confirmation email
+            $order->loadMissing('customer', 'items.product', 'items.variant', 'invitationDetail');
+            Mail::to($order->customer->email)->send(new OrderConfirmed($order));
 
             return $order;
         });
