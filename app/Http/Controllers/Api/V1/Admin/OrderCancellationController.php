@@ -135,4 +135,19 @@ class OrderCancellationController extends Controller
 
         return response()->json(['data' => $stats]);
     }
+
+    /**
+     * Get activity logs for a cancellation request.
+     */
+    public function activityLogs(OrderCancellationRequest $cancellationRequest): JsonResponse
+    {
+        $activityLogs = $cancellationRequest->activityLogs()
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => $activityLogs,
+        ]);
+    }
 }
