@@ -43,6 +43,12 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('products', Customer\ProductController::class)->only(['index', 'show']);
         Route::apiResource('product-categories', Customer\ProductCategoryController::class)->only(['index', 'show']);
         Route::apiResource('gallery-items', Customer\GalleryItemController::class)->only(['index', 'show']);
+        
+        // Public review routes
+        Route::get('/products/{productId}/reviews', [Customer\ReviewController::class, 'index']);
+        Route::get('/products/{productId}/reviews/summary', [Customer\ReviewController::class, 'getRatingSummary']);
+        Route::get('/reviews/{review}', [Customer\ReviewController::class, 'show']);
+        Route::post('/reviews/{review}/helpful', [Customer\ReviewController::class, 'markAsHelpful']);
     });
 
     // --- Rute dengan Autentikasi Opsional (Untuk Keranjang Tamu) ---
@@ -78,6 +84,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/design-proofs/{designProof}/approve', [Customer\DesignProofController::class, 'approve']);
         Route::post('/design-proofs/{designProof}/request-revision', [Customer\DesignProofController::class, 'requestRevision']);
         Route::post('/design-proofs/{designProof}/reject', [Customer\DesignProofController::class, 'reject']);
+
+        // Review Routes (Customer)
+        Route::get('/reviews/my', [Customer\ReviewController::class, 'myReviews']);
+        Route::post('/reviews', [Customer\ReviewController::class, 'store']);
+        Route::put('/reviews/{review}', [Customer\ReviewController::class, 'update']);
+        Route::delete('/reviews/{review}', [Customer\ReviewController::class, 'destroy']);
     });
 });
 
@@ -119,4 +131,15 @@ Route::prefix('v1/admin')
         Route::post('/cancellation-requests/{cancellationRequest}/approve', [Admin\OrderCancellationController::class, 'approve'])->name('cancellation-requests.approve');
         Route::post('/cancellation-requests/{cancellationRequest}/reject', [Admin\OrderCancellationController::class, 'reject'])->name('cancellation-requests.reject');
         Route::get('/cancellation-requests/statistics/summary', [Admin\OrderCancellationController::class, 'statistics'])->name('cancellation-requests.statistics');
+
+        // Review Routes (Admin)
+        Route::get('/reviews', [Admin\ReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/statistics', [Admin\ReviewController::class, 'statistics'])->name('reviews.statistics');
+        Route::get('/reviews/{review}', [Admin\ReviewController::class, 'show'])->name('reviews.show');
+        Route::post('/reviews/{review}/approve', [Admin\ReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/reviews/{review}/reject', [Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+        Route::post('/reviews/{review}/toggle-featured', [Admin\ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
+        Route::post('/reviews/{review}/response', [Admin\ReviewController::class, 'addResponse'])->name('reviews.add-response');
+        Route::delete('/reviews/{review}', [Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::delete('/review-images/{reviewImage}', [Admin\ReviewController::class, 'deleteImage'])->name('review-images.destroy');
     });

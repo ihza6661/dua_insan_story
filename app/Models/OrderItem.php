@@ -42,4 +42,25 @@ class OrderItem extends Model
     {
         return $this->hasMany(DesignProof::class);
     }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    /**
+     * Check if this order item can be reviewed.
+     */
+    public function canBeReviewed(): bool
+    {
+        // Can be reviewed if order is completed or delivered and no review exists
+        if ($this->review()->exists()) {
+            return false;
+        }
+
+        $order = $this->order;
+        $reviewableStatuses = ['completed', 'delivered'];
+
+        return in_array($order->order_status, $reviewableStatuses);
+    }
 }

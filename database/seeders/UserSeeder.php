@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Address;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,12 +22,26 @@ class UserSeeder extends Seeder
         );
 
         // Customer User
-        User::firstOrCreate(
+        $customer = User::firstOrCreate(
             ['email' => 'customer@example.com'],
             [
-                'full_name' => 'Pelanggan Setia',
+                'full_name' => 'Ihza Mahendra Sofyan',
                 'password' => Hash::make('password'),
+                'phone_number' => '089692070270',
                 'role' => 'customer',
+            ]
+        );
+
+        // Customer Address
+        $customer->address()->firstOrCreate(
+            ['user_id' => $customer->id],
+            [
+                'street' => 'Jl. Karet Komp. Surya Kencana 1',
+                'city' => 'Kota Pontianak',
+                'state' => 'Kalimantan Barat',
+                'subdistrict' => 'Pontianak Barat',
+                'postal_code' => '71111',
+                'country' => 'Indonesia',
             ]
         );
     }

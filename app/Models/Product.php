@@ -108,6 +108,22 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
 
+    /**
+     * Get all reviews for this product.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get approved reviews for this product.
+     */
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->where('is_approved', true);
+    }
+
     // ========== QUERY SCOPES ==========
 
     /**
@@ -163,5 +179,36 @@ class Product extends Model
     public function scopeLatest(Builder $query): Builder
     {
         return $query->orderBy('created_at', 'desc');
+    }
+
+    // ========== REVIEW HELPER METHODS ==========
+
+    /**
+     * Get the average rating for this product.
+     */
+    public function getAverageRatingAttribute(): float
+    {
+        return round($this->approvedReviews()->avg('rating') ?? 0, 1);
+    }
+
+    /**
+     * Get the total count of approved reviews.
+     */
+    public function getReviewCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get rating breakdown (count per star rating).
+     */
+    public function getRatingBreakdownAttribute(): array
+    {
+        $breakdown = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $breakdown[$i] = $this->approvedReviews()->where('rating', $i)->count();
+        }
+
+        return $breakdown;
     }
 }
