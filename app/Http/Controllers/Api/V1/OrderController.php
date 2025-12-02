@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\CancelOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\MidtransService;
+use App\Services\OrderCancellationService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -93,7 +96,7 @@ class OrderController extends Controller
                 'snap_token' => $snapToken,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Midtrans Token Generation Failed', [
+            \Illuminate\Support\Facades\Log::error('Midtrans Token Generation Failed', [
                 'error' => $e->getMessage(),
                 'order_id' => $order->id,
                 'transaction_id' => $payment->transaction_id,
@@ -102,6 +105,46 @@ class OrderController extends Controller
             ]);
 
             return response()->json(['message' => 'Failed to generate payment token: '.$e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Request cancellation of an order.
+     */
+    public function requestCancellation(
+        CancelOrderRequest $request,
+        Order $order,
+        OrderCancellationService $cancellationService
+    ): JsonResponse {
+        try {
+            // Check if order can be cancelled
+            if (! $cancellationService->canRequestCancellation($order)) {
+                return response()->json([
+                    'message' => $cancellationService->getCancellationIneligibilityReason($order),
+                ], 422);
+            }
+
+            // Create cancellation request
+            $cancellationRequest = $cancellationService->createCancellationRequest(
+                $order,
+                $request->user(),
+                $request->input('reason')
+            );
+
+            return response()->json([
+                'message' => 'Permintaan pembatalan berhasil dibuat. Kami akan segera meninjau permintaan Anda.',
+                'data' => [
+                    'id' => $cancellationRequest->id,
+                    'order_id' => $cancellationRequest->order_id,
+                    'status' => $cancellationRequest->status,
+                    'cancellation_reason' => $cancellationRequest->cancellation_reason,
+                    'created_at' => $cancellationRequest->created_at,
+                ],
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal membuat permintaan pembatalan: '.$e->getMessage(),
+            ], 500);
         }
     }
 }

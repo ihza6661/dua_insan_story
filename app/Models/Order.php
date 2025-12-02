@@ -147,6 +147,24 @@ class Order extends Model
     }
 
     /**
+     * Get all cancellation requests for this order.
+     */
+    public function cancellationRequests(): HasMany
+    {
+        return $this->hasMany(OrderCancellationRequest::class);
+    }
+
+    /**
+     * Get the active cancellation request for this order.
+     */
+    public function activeCancellationRequest(): HasOne
+    {
+        return $this->hasOne(OrderCancellationRequest::class)
+            ->where('status', OrderCancellationRequest::STATUS_PENDING)
+            ->latestOfMany();
+    }
+
+    /**
      * Get remaining balance (computed from database).
      * REFACTORED: Avoid N+1 by using withSum() in queries instead.
      */

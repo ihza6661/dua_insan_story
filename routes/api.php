@@ -69,6 +69,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);
         Route::post('/orders/{order}/retry-payment', [OrderController::class, 'retryPayment']);
+        Route::post('/orders/{order}/cancel', [OrderController::class, 'requestCancellation']);
 
         // Design Proof Routes (Customer)
         Route::get('/design-proofs', [Customer\DesignProofController::class, 'index']);
@@ -110,4 +111,11 @@ Route::prefix('v1/admin')
         Route::get('/design-proofs/{designProof}', [Admin\DesignProofController::class, 'show'])->name('design-proofs.show');
         Route::delete('/design-proofs/{designProof}', [Admin\DesignProofController::class, 'destroy'])->name('design-proofs.destroy');
         Route::get('/order-items/{orderItem}/design-proofs', [Admin\DesignProofController::class, 'getByOrderItem'])->name('order-items.design-proofs');
+
+        // Order Cancellation Routes (Admin)
+        Route::get('/cancellation-requests', [Admin\OrderCancellationController::class, 'index'])->name('cancellation-requests.index');
+        Route::get('/cancellation-requests/{cancellationRequest}', [Admin\OrderCancellationController::class, 'show'])->name('cancellation-requests.show');
+        Route::post('/cancellation-requests/{cancellationRequest}/approve', [Admin\OrderCancellationController::class, 'approve'])->name('cancellation-requests.approve');
+        Route::post('/cancellation-requests/{cancellationRequest}/reject', [Admin\OrderCancellationController::class, 'reject'])->name('cancellation-requests.reject');
+        Route::get('/cancellation-requests/statistics/summary', [Admin\OrderCancellationController::class, 'statistics'])->name('cancellation-requests.statistics');
     });
