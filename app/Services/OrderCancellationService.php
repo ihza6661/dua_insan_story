@@ -21,7 +21,8 @@ class OrderCancellationService
 {
     public function __construct(
         protected StockService $stockService,
-        protected MidtransService $midtransService
+        protected MidtransService $midtransService,
+        protected ActivityLogger $activityLogger
     ) {}
 
     /**
@@ -145,6 +146,9 @@ class OrderCancellationService
                 'customer_id' => $customer->id,
             ]);
 
+            // Log activity
+            $this->activityLogger->logCancellationRequestCreated($cancellationRequest, $customer);
+
             // Send email notification to customer
             Mail::to($customer->email)->queue(new CancellationRequestReceived($order, $cancellationRequest));
 
@@ -203,6 +207,14 @@ class OrderCancellationService
                 'approved_by' => $admin->id,
             ]);
 
+            // Log activity
+            $this->activityLogger->logCancellationApproved(
+                $cancellationRequest,
+                $admin,
+                $notes,
+                $cancellationRequest->refund_amount
+            );
+
             // Send email notification to customer
             Mail::to($order->customer->email)->queue(new CancellationApproved($order, $cancellationRequest));
         });
@@ -231,6 +243,9 @@ class OrderCancellationService
                 'order_number' => $order->order_number,
                 'rejected_by' => $admin->id,
             ]);
+
+            // Log activity
+            $this->activityLogger->logCancellationRejected($cancellationRequest, $admin, $notes);
 
             // Send email notification to customer
             Mail::to($order->customer->email)->queue(new CancellationRejected($order, $cancellationRequest));

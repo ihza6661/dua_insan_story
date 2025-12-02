@@ -115,6 +115,7 @@ Route::prefix('v1/admin')
         // Order Cancellation Routes (Admin)
         Route::get('/cancellation-requests', [Admin\OrderCancellationController::class, 'index'])->name('cancellation-requests.index');
         Route::get('/cancellation-requests/{cancellationRequest}', [Admin\OrderCancellationController::class, 'show'])->name('cancellation-requests.show');
+        Route::get('/cancellation-requests/{cancellationRequest}/activity-logs', [Admin\OrderCancellationController::class, 'activityLogs'])->name('cancellation-requests.activity-logs');
         Route::post('/cancellation-requests/{cancellationRequest}/approve', [Admin\OrderCancellationController::class, 'approve'])->name('cancellation-requests.approve');
         Route::post('/cancellation-requests/{cancellationRequest}/reject', [Admin\OrderCancellationController::class, 'reject'])->name('cancellation-requests.reject');
         Route::get('/cancellation-requests/statistics/summary', [Admin\OrderCancellationController::class, 'statistics'])->name('cancellation-requests.statistics');
