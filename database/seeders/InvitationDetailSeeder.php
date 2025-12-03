@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\InvitationDetail;
 use App\Models\Order;
-use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 
 class InvitationDetailSeeder extends Seeder
@@ -14,8 +13,6 @@ class InvitationDetailSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
-
         // Get all orders from the database
         $orders = Order::all();
 
@@ -26,6 +23,8 @@ class InvitationDetailSeeder extends Seeder
         }
 
         $this->command->info("Found {$orders->count()} orders. Creating invitation details...");
+
+        $created = 0;
 
         foreach ($orders as $order) {
             // Check if invitation detail already exists for this order
@@ -39,32 +38,19 @@ class InvitationDetailSeeder extends Seeder
             $completedStatuses = ['Completed', 'Delivered', 'Cancelled'];
             $isPastWedding = in_array($order->order_status, $completedStatuses);
 
-            // Create invitation detail using factory
-            $invitationDetail = InvitationDetail::factory()
-                ->create([
-                    'order_id' => $order->id,
-                    'akad_date' => $isPastWedding
-                        ? $faker->dateTimeBetween('-6 months', '-1 month')->format('Y-m-d')
-                        : $faker->dateTimeBetween('+1 month', '+6 months')->format('Y-m-d'),
-                ]);
-
-            // Update reception date to match logic (same day or next day)
-            $akadDate = new \DateTime($invitationDetail->akad_date);
-            $receptionDate = clone $akadDate;
-
-            if ($faker->boolean(30)) { // 30% chance reception is next day
-                $receptionDate->modify('+1 day');
+            // Use factory state methods for past/future weddings
+            if ($isPastWedding) {
+                InvitationDetail::factory()->past()->create(['order_id' => $order->id]);
+            } else {
+                InvitationDetail::factory()->future()->create(['order_id' => $order->id]);
             }
 
-            $invitationDetail->update([
-                'reception_date' => $receptionDate->format('Y-m-d'),
-            ]);
-
+            $created++;
             $this->command->info("✓ Created invitation detail for Order #{$order->id} (Status: {$order->order_status})");
         }
 
         $this->command->info('');
         $this->command->info('✅ Invitation details seeding completed!');
-        $this->command->info("Total invitation details created: {$orders->count()}");
+        $this->command->info("Total invitation details created: {$created}");
     }
 }
