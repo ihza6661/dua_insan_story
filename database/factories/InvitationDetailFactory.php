@@ -118,9 +118,19 @@ class InvitationDetailFactory extends Factory
      */
     public function past(): static
     {
-        return $this->state(fn () => [
-            'akad_date' => $this->faker->dateTimeBetween('-6 months', '-1 month')->format('Y-m-d'),
-        ]);
+        return $this->state(function () {
+            $weddingDate = $this->faker->dateTimeBetween('-6 months', '-1 month');
+            $receptionDate = clone $weddingDate;
+
+            if ($this->faker->boolean(30)) { // 30% chance reception is next day
+                $receptionDate->modify('+1 day');
+            }
+
+            return [
+                'akad_date' => $weddingDate->format('Y-m-d'),
+                'reception_date' => $receptionDate->format('Y-m-d'),
+            ];
+        });
     }
 
     /**
@@ -128,8 +138,18 @@ class InvitationDetailFactory extends Factory
      */
     public function future(): static
     {
-        return $this->state(fn () => [
-            'akad_date' => $this->faker->dateTimeBetween('+1 month', '+6 months')->format('Y-m-d'),
-        ]);
+        return $this->state(function () {
+            $weddingDate = $this->faker->dateTimeBetween('+1 month', '+6 months');
+            $receptionDate = clone $weddingDate;
+
+            if ($this->faker->boolean(30)) { // 30% chance reception is next day
+                $receptionDate->modify('+1 day');
+            }
+
+            return [
+                'akad_date' => $weddingDate->format('Y-m-d'),
+                'reception_date' => $receptionDate->format('Y-m-d'),
+            ];
+        });
     }
 }
