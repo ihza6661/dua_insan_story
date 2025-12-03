@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\InvitationDetail;
 use App\Models\Order;
+use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 
 class InvitationDetailSeeder extends Seeder
@@ -13,6 +14,8 @@ class InvitationDetailSeeder extends Seeder
      */
     public function run(): void
     {
+        $faker = Faker::create();
+
         // Get all orders from the database
         $orders = Order::all();
 
@@ -41,15 +44,15 @@ class InvitationDetailSeeder extends Seeder
                 ->create([
                     'order_id' => $order->id,
                     'akad_date' => $isPastWedding
-                        ? fake()->dateTimeBetween('-6 months', '-1 month')->format('Y-m-d')
-                        : fake()->dateTimeBetween('+1 month', '+6 months')->format('Y-m-d'),
+                        ? $faker->dateTimeBetween('-6 months', '-1 month')->format('Y-m-d')
+                        : $faker->dateTimeBetween('+1 month', '+6 months')->format('Y-m-d'),
                 ]);
 
             // Update reception date to match logic (same day or next day)
             $akadDate = new \DateTime($invitationDetail->akad_date);
             $receptionDate = clone $akadDate;
 
-            if (fake()->boolean(30)) { // 30% chance reception is next day
+            if ($faker->boolean(30)) { // 30% chance reception is next day
                 $receptionDate->modify('+1 day');
             }
 
