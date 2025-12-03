@@ -22,6 +22,15 @@ class ReviewResource extends JsonResource
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
 
+            // Frontend compatibility: add status field
+            'status' => $this->is_approved ? 'approved' : 'rejected',
+            'user_id' => $this->customer_id,
+            'user_name' => $this->customer->full_name ?? 'Anonymous',
+            'product_id' => $this->product_id,
+            'product_name' => $this->product->name ?? null,
+            'order_item_id' => $this->order_item_id,
+            'is_verified_purchase' => $this->is_verified,
+
             // Relationships
             'customer' => [
                 'id' => $this->customer->id ?? null,
