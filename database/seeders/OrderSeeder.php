@@ -126,6 +126,26 @@ class OrderSeeder extends Seeder
             );
         }
 
+        // ====== CREATE CANCELLED ORDERS ======
+        $this->command->info('❌ Creating cancelled orders...');
+
+        $cancelledOrdersCount = 3; // Create 3 cancelled orders for testing
+        for ($i = 0; $i < $cancelledOrdersCount; $i++) {
+            $daysAgo = rand(7, 30); // Cancelled orders from 1 week to 1 month ago
+            $createdAt = now()->subDays($daysAgo);
+
+            $this->createOrder(
+                $customer,
+                $products,
+                $shippingAddress,
+                $shippingServices,
+                $couriers,
+                $orderCounter++,
+                Order::STATUS_CANCELLED,
+                $createdAt
+            );
+        }
+
         $this->command->info('✅ Successfully created '.($orderCounter - 1).' orders!');
         $this->command->info('📈 Weekly revenue chart should now display data for the past 7 days.');
         $this->command->info('💰 Total revenue includes only "Completed" orders.');
@@ -166,7 +186,7 @@ class OrderSeeder extends Seeder
             'shipping_service' => $shippingServices[$serviceIndex],
             'courier' => $couriers[$serviceIndex],
             'payment_gateway' => 'midtrans',
-            'payment_status' => in_array($status, [Order::STATUS_PENDING_PAYMENT]) ? 'pending' : 'paid',
+            'payment_status' => in_array($status, [Order::STATUS_PENDING_PAYMENT, Order::STATUS_CANCELLED]) ? 'pending' : 'paid',
         ]);
 
         // Manually set order_status (since it's guarded)
@@ -205,7 +225,13 @@ class OrderSeeder extends Seeder
         $order->total_amount = $totalAmount + $shippingCost;
         $order->save();
 
-        $statusEmoji = $status === Order::STATUS_COMPLETED ? '✅' : '📦';
+        $statusEmoji = match($status) {
+            Order::STATUS_COMPLETED => '✅',
+            Order::STATUS_CANCELLED => '❌',
+            Order::STATUS_DELIVERED => '🚚',
+            Order::STATUS_SHIPPED => '📦',
+            default => '📋'
+        };
         $this->command->info("{$statusEmoji} {$orderNumberStr} - {$status} - Rp ".number_format($order->total_amount)." ({$createdAt->format('Y-m-d')})");
     }
 }
