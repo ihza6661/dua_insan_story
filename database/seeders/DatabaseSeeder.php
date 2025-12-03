@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
 
             // Order and Review seeders
             OrderSeeder::class,
+            InvitationDetailSeeder::class,
             ReviewSeeder::class,
             ReviewImageSeeder::class,
         ]);
