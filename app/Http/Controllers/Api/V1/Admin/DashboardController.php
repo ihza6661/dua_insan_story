@@ -22,7 +22,7 @@ class DashboardController extends Controller
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(total_amount) as revenue')
         )
-            ->where('created_at', ' >=', now()->subWeek())
+            ->where('created_at', '>=', now()->subWeek())
             ->groupBy('date')
             ->get();
 
