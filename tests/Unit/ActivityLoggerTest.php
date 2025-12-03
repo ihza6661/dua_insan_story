@@ -20,7 +20,7 @@ class ActivityLoggerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->activityLogger = new ActivityLogger();
+        $this->activityLogger = new ActivityLogger;
     }
 
     #[Test]

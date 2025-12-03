@@ -22,20 +22,20 @@ return new class extends Migration
                 $table->boolean('is_verified')->default(true); // verified purchase (always true for order-based reviews)
                 $table->boolean('is_approved')->default(true); // admin moderation
                 $table->boolean('is_featured')->default(false); // featured reviews
-                
+
                 // Admin response
                 $table->text('admin_response')->nullable();
                 $table->timestamp('admin_responded_at')->nullable();
                 $table->foreignId('admin_responder_id')->nullable()->constrained('users')->nullOnDelete();
-                
+
                 // Helpfulness tracking
                 $table->unsignedInteger('helpful_count')->default(0);
-                
+
                 $table->timestamps();
-                
+
                 // Prevent duplicate reviews per order item
                 $table->unique(['order_item_id', 'customer_id']);
-                
+
                 // Indexes for performance
                 $table->index('product_id');
                 $table->index('customer_id');

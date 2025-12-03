@@ -11,6 +11,8 @@ use App\Services\ReviewService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Admin Review Controller
@@ -79,6 +81,7 @@ class ReviewController extends Controller
     {
         try {
             $updatedReview = $this->reviewService->approveReview($review);
+            Cache::forget('review_statistics');
 
             return response()->json([
                 'message' => 'Ulasan berhasil disetujui.',
@@ -99,6 +102,7 @@ class ReviewController extends Controller
     {
         try {
             $updatedReview = $this->reviewService->rejectReview($review);
+            Cache::forget('review_statistics');
 
             return response()->json([
                 'message' => 'Ulasan berhasil ditolak.',
@@ -119,6 +123,7 @@ class ReviewController extends Controller
     {
         try {
             $updatedReview = $this->reviewService->toggleFeatured($review);
+            Cache::forget('review_statistics');
 
             $message = $updatedReview->is_featured
                 ? 'Ulasan berhasil ditandai sebagai unggulan.'
@@ -166,6 +171,7 @@ class ReviewController extends Controller
     {
         try {
             $this->reviewService->deleteReviewByAdmin($review);
+            Cache::forget('review_statistics');
 
             return response()->json([
                 'message' => 'Ulasan berhasil dihapus.',
@@ -199,25 +205,46 @@ class ReviewController extends Controller
 
     /**
      * Get review statistics.
+     * Optimized to use single query with aggregations (9 queries → 1)
+     * Cached for 5 minutes
      */
     public function statistics(): JsonResponse
     {
         try {
-            $stats = [
-                'total_reviews' => Review::count(),
-                'pending_reviews' => Review::pending()->count(),
-                'approved_reviews' => Review::approved()->count(),
-                'featured_reviews' => Review::featured()->count(),
-                'average_rating' => round(Review::approved()->avg('rating') ?? 0, 1),
-                'reviews_with_images' => Review::withImages()->count(),
-                'rating_distribution' => [
-                    '5_star' => Review::approved()->where('rating', 5)->count(),
-                    '4_star' => Review::approved()->where('rating', 4)->count(),
-                    '3_star' => Review::approved()->where('rating', 3)->count(),
-                    '2_star' => Review::approved()->where('rating', 2)->count(),
-                    '1_star' => Review::approved()->where('rating', 1)->count(),
-                ],
-            ];
+            $stats = Cache::remember('review_statistics', 300, function () {
+                // Single optimized query with all aggregations
+                $result = DB::table('reviews')
+                    ->select([
+                        DB::raw('COUNT(*) as total_reviews'),
+                        DB::raw('SUM(CASE WHEN is_approved IS NULL THEN 1 ELSE 0 END) as pending_reviews'),
+                        DB::raw('SUM(CASE WHEN is_approved = 1 THEN 1 ELSE 0 END) as approved_reviews'),
+                        DB::raw('SUM(CASE WHEN is_featured = 1 THEN 1 ELSE 0 END) as featured_reviews'),
+                        DB::raw('AVG(CASE WHEN is_approved = 1 THEN rating ELSE NULL END) as average_rating'),
+                        DB::raw('SUM(CASE WHEN EXISTS (SELECT 1 FROM review_images WHERE review_images.review_id = reviews.id) THEN 1 ELSE 0 END) as reviews_with_images'),
+                        DB::raw('SUM(CASE WHEN is_approved = 1 AND rating = 5 THEN 1 ELSE 0 END) as rating_5'),
+                        DB::raw('SUM(CASE WHEN is_approved = 1 AND rating = 4 THEN 1 ELSE 0 END) as rating_4'),
+                        DB::raw('SUM(CASE WHEN is_approved = 1 AND rating = 3 THEN 1 ELSE 0 END) as rating_3'),
+                        DB::raw('SUM(CASE WHEN is_approved = 1 AND rating = 2 THEN 1 ELSE 0 END) as rating_2'),
+                        DB::raw('SUM(CASE WHEN is_approved = 1 AND rating = 1 THEN 1 ELSE 0 END) as rating_1'),
+                    ])
+                    ->first();
+
+                return [
+                    'total_reviews' => (int) $result->total_reviews,
+                    'pending_reviews' => (int) $result->pending_reviews,
+                    'approved_reviews' => (int) $result->approved_reviews,
+                    'featured_reviews' => (int) $result->featured_reviews,
+                    'average_rating' => round((float) ($result->average_rating ?? 0), 1),
+                    'reviews_with_images' => (int) $result->reviews_with_images,
+                    'rating_distribution' => [
+                        '5_star' => (int) $result->rating_5,
+                        '4_star' => (int) $result->rating_4,
+                        '3_star' => (int) $result->rating_3,
+                        '2_star' => (int) $result->rating_2,
+                        '1_star' => (int) $result->rating_1,
+                    ],
+                ];
+            });
 
             return response()->json([
                 'message' => 'Statistik ulasan berhasil diambil.',

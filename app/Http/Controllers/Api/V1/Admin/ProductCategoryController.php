@@ -10,17 +10,27 @@ use App\Models\ProductCategory;
 use App\Services\ProductCategoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Cache;
 
 class ProductCategoryController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
-        return AdminProductCategoryResource::collection(ProductCategory::latest()->get());
+        $perPage = request('per_page', 20);
+
+        $categories = ProductCategory::withCount('products')
+            ->latest()
+            ->paginate($perPage);
+
+        return AdminProductCategoryResource::collection($categories);
     }
 
     public function store(StoreRequest $request, ProductCategoryService $categoryService): JsonResponse
     {
         $category = $categoryService->createCategory($request->validated());
+
+        // Clear categories cache
+        Cache::forget('product_categories_list');
 
         return response()->json([
             'message' => 'Kategori produk berhasil dibuat.',
@@ -37,6 +47,9 @@ class ProductCategoryController extends Controller
     {
         $updatedCategory = $categoryService->updateCategory($productCategory, $request->validated());
 
+        // Clear categories cache
+        Cache::forget('product_categories_list');
+
         return response()->json([
             'message' => 'Kategori produk berhasil diperbarui.',
             'data' => new AdminProductCategoryResource($updatedCategory),
@@ -52,6 +65,9 @@ class ProductCategoryController extends Controller
         }
 
         $productCategory->delete();
+
+        // Clear categories cache
+        Cache::forget('product_categories_list');
 
         return response()->json([
             'message' => 'Kategori produk berhasil dihapus.',

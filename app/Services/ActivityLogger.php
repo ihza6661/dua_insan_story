@@ -25,7 +25,6 @@ class ActivityLogger
      * @param  User|null  $user  The user performing the action
      * @param  string|null  $description  Human-readable description
      * @param  array  $properties  Additional properties (old values, new values, metadata)
-     * @return ActivityLog
      */
     public function log(
         string $logType,
