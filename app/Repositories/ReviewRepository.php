@@ -145,7 +145,7 @@ class ReviewRepository implements ReviewRepositoryInterface
             $query->featured();
         }
 
-        if (isset($filters['search']) && !empty($filters['search'])) {
+        if (isset($filters['search']) && ! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('comment', 'like', "%{$search}%")
@@ -169,13 +169,13 @@ class ReviewRepository implements ReviewRepositoryInterface
         // Check if order item exists and belongs to customer
         $orderItem = OrderItem::with('order')->find($orderItemId);
 
-        if (!$orderItem || $orderItem->order->customer_id !== $customerId) {
+        if (! $orderItem || $orderItem->order->customer_id !== $customerId) {
             return false;
         }
 
         // Check if order is in reviewable status (completed or delivered)
         $reviewableStatuses = [Order::STATUS_COMPLETED, Order::STATUS_DELIVERED];
-        if (!in_array($orderItem->order->order_status, $reviewableStatuses)) {
+        if (! in_array($orderItem->order->order_status, $reviewableStatuses)) {
             return false;
         }
 

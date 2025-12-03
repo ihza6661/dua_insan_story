@@ -47,27 +47,29 @@ class ReviewSeeder extends Seeder
     public function run(): void
     {
         $customer = User::where('email', 'customer@example.com')->first();
-        
-        if (!$customer) {
+
+        if (! $customer) {
             $this->command->error('Customer user not found! Please run UserSeeder first.');
+
             return;
         }
 
         // Get all order items that can be reviewed
         $orderItems = OrderItem::whereHas('order', function ($query) use ($customer) {
             $query->where('customer_id', $customer->id)
-                  ->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED]);
+                ->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED]);
         })->with(['product', 'order'])->get();
 
         if ($orderItems->count() < 5) {
             $this->command->error('Not enough order items! Please run OrderSeeder first.');
+
             return;
         }
 
         $reviewCount = 0;
         $targetReviews = min(15, $orderItems->count());
 
-        // Review distribution: 
+        // Review distribution:
         // 5 stars: 6 reviews (40%)
         // 4 stars: 4 reviews (27%)
         // 3 stars: 2 reviews (13%)
@@ -83,10 +85,12 @@ class ReviewSeeder extends Seeder
 
         foreach ($ratingDistribution as $rating => $count) {
             for ($i = 0; $i < $count && $reviewCount < $targetReviews; $i++) {
-                if ($reviewCount >= $orderItems->count()) break;
-                
+                if ($reviewCount >= $orderItems->count()) {
+                    break;
+                }
+
                 $orderItem = $orderItems[$reviewCount];
-                
+
                 // Determine review status
                 // 80% approved, 15% pending, 5% rejected
                 $rand = rand(1, 100);
@@ -145,8 +149,8 @@ class ReviewSeeder extends Seeder
         }
 
         $this->command->info("\n✅ Successfully created {$reviewCount} reviews!");
-        $this->command->info("   - Approved: " . Review::where('is_approved', true)->count());
-        $this->command->info("   - Pending/Rejected: " . Review::where('is_approved', false)->count());
-        $this->command->info("   - Featured: " . Review::where('is_featured', true)->count());
+        $this->command->info('   - Approved: '.Review::where('is_approved', true)->count());
+        $this->command->info('   - Pending/Rejected: '.Review::where('is_approved', false)->count());
+        $this->command->info('   - Featured: '.Review::where('is_featured', true)->count());
     }
 }

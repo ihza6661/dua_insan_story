@@ -60,7 +60,7 @@ class ProfileController extends Controller
             }
         }
 
-return response()->json([
+        return response()->json([
             'message' => 'Profile updated successfully.',
             'data' => new UserResource($user->load('address')),
         ]);

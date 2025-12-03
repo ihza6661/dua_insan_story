@@ -15,11 +15,13 @@ class ProductController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
+        $perPage = request('per_page', 20);
 
-        $products = Product::with(['category', 'variants.images'])->latest()->get();
+        $products = Product::with(['category', 'variants.images', 'variants.options.attribute'])
+            ->latest()
+            ->paginate($perPage);
 
         return AdminProductResource::collection($products);
-
     }
 
     public function store(StoreRequest $request, ProductService $productService): JsonResponse

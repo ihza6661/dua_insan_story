@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->string('alt_text')->nullable();
                 $table->unsignedSmallInteger('display_order')->default(0);
                 $table->timestamps();
-                
+
                 // Index for performance
                 $table->index('review_id');
             });

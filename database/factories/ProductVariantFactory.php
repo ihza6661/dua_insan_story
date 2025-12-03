@@ -18,7 +18,7 @@ class ProductVariantFactory extends Factory
     {
         return [
             'product_id' => \App\Models\Product::factory(),
-            'sku' => 'SKU-' . strtoupper($this->faker->bothify('??##??##')),
+            'sku' => 'SKU-'.strtoupper($this->faker->bothify('??##??##')),
             'stock' => $this->faker->numberBetween(0, 100),
             'price' => $this->faker->numberBetween(50000, 500000),
             'weight' => $this->faker->numberBetween(100, 1000),

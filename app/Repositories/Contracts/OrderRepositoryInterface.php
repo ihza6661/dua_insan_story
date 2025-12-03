@@ -57,4 +57,19 @@ interface OrderRepositoryInterface
      * Update order status.
      */
     public function updateStatus(Order $order, string $status): Order;
+
+    /**
+     * Get paginated orders with optional filters.
+     *
+     * @param  array  $filters  ['search', 'order_status', 'payment_status', 'date_from', 'date_to']
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getPaginatedWithFilters(array $filters = [], array $relations = [], int $perPage = 20);
+
+    /**
+     * Get orders for export (no pagination).
+     *
+     * @param  array  $filters  ['search', 'order_status', 'payment_status', 'date_from', 'date_to']
+     */
+    public function getForExport(array $filters = [], array $relations = []): Collection;
 }

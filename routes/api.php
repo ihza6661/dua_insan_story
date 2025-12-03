@@ -43,7 +43,7 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('products', Customer\ProductController::class)->only(['index', 'show']);
         Route::apiResource('product-categories', Customer\ProductCategoryController::class)->only(['index', 'show']);
         Route::apiResource('gallery-items', Customer\GalleryItemController::class)->only(['index', 'show']);
-        
+
         // Public review routes
         Route::get('/products/{productId}/reviews', [Customer\ReviewController::class, 'index']);
         Route::get('/products/{productId}/reviews/summary', [Customer\ReviewController::class, 'getRatingSummary']);
@@ -113,6 +113,8 @@ Route::prefix('v1/admin')
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::post('/orders/bulk-update-status', [AdminOrderController::class, 'bulkUpdateStatus'])->name('orders.bulkUpdateStatus');
+        Route::post('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');

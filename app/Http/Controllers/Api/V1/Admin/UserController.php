@@ -24,7 +24,11 @@ class UserController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $role = $request->query('role', 'admin');
-        $users = User::where('role', $role)->latest()->get();
+        $perPage = $request->query('per_page', 20);
+
+        $users = User::where('role', $role)
+            ->latest()
+            ->paginate($perPage);
 
         return UserResource::collection($users);
     }

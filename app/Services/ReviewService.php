@@ -33,7 +33,7 @@ class ReviewService
     public function createReview(int $customerId, array $validatedData): Review
     {
         // Check if customer can review this order item
-        if (!$this->reviewRepository->canCustomerReviewOrderItem($customerId, $validatedData['order_item_id'])) {
+        if (! $this->reviewRepository->canCustomerReviewOrderItem($customerId, $validatedData['order_item_id'])) {
             throw new Exception('Anda tidak dapat memberikan ulasan untuk item pesanan ini.');
         }
 
@@ -174,7 +174,7 @@ class ReviewService
      */
     public function toggleFeatured(Review $review): Review
     {
-        return $this->reviewRepository->update($review, ['is_featured' => !$review->is_featured]);
+        return $this->reviewRepository->update($review, ['is_featured' => ! $review->is_featured]);
     }
 
     /**
@@ -220,7 +220,7 @@ class ReviewService
         $directory = 'review-images';
         $disk = Storage::disk('public');
 
-        if (!$disk->exists($directory)) {
+        if (! $disk->exists($directory)) {
             $disk->makeDirectory($directory, 0777, true);
         }
 
