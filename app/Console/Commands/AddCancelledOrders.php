@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Order;
+use App\Models\OrderCancellationRequest;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
@@ -26,6 +27,16 @@ class AddCancelledOrders extends Command
 
     private array $shippingServices = ['JNE REG', 'J&T Express', 'SiCepat REG', 'AnterAja REG', 'Ninja Express', 'POS Indonesia'];
     private array $couriers = ['JNE', 'J&T', 'SiCepat', 'AnterAja', 'Ninja', 'POS'];
+    
+    private array $cancellationReasons = [
+        'Salah pilih desain undangan, ingin ganti dengan yang lain',
+        'Pernikahan ditunda karena kondisi keluarga',
+        'Ingin mengubah warna dan tema undangan',
+        'Biaya tidak sesuai budget, ingin cari yang lebih murah',
+        'Customer requested cancellation',
+        'Changed mind about design',
+        'Payment issues, need to reorder',
+    ];
 
     /**
      * Execute the console command.
@@ -56,6 +67,15 @@ class AddCancelledOrders extends Command
 
         $this->info("Found {$products->count()} products");
 
+        // Find admin user
+        $admin = User::where('role', 'admin')->first();
+        if (! $admin) {
+            $this->error('No admin user found! Cannot create cancellation requests.');
+            return Command::FAILURE;
+        }
+
+        $this->info("Found admin: {$admin->email}");
+
         // Get customer address or use default
         $address = $customer->address;
         $shippingAddress = $address
@@ -66,7 +86,7 @@ class AddCancelledOrders extends Command
         $latestOrder = Order::orderBy('id', 'desc')->first();
         $orderCounter = $latestOrder ? $latestOrder->id + 1 : 1;
 
-        $this->info("\nCreating cancelled orders...\n");
+        $this->info("\nCreating cancelled orders with cancellation requests...\n");
 
         $created = 0;
         for ($i = 0; $i < $count; $i++) {
@@ -82,6 +102,9 @@ class AddCancelledOrders extends Command
             );
 
             if ($order) {
+                // Create associated cancellation request
+                $this->createCancellationRequest($order, $customer, $admin);
+                
                 $created++;
                 $this->info("❌ {$order->order_number} - Cancelled - Rp ".number_format($order->total_amount)." ({$createdAt->format('Y-m-d')})");
             }
@@ -164,5 +187,40 @@ class AddCancelledOrders extends Command
         $order->save();
 
         return $order;
+    }
+
+    /**
+     * Create cancellation request for cancelled order
+     */
+    private function createCancellationRequest(Order $order, User $customer, User $admin): void
+    {
+        $reason = $this->cancellationReasons[array_rand($this->cancellationReasons)];
+        
+        // Determine refund status mix (70% completed, 15% processing, 10% pending, 5% failed)
+        $rand = rand(1, 100);
+        if ($rand <= 70) {
+            $refundStatus = OrderCancellationRequest::REFUND_STATUS_COMPLETED;
+        } elseif ($rand <= 85) {
+            $refundStatus = OrderCancellationRequest::REFUND_STATUS_PROCESSING;
+        } elseif ($rand <= 95) {
+            $refundStatus = OrderCancellationRequest::REFUND_STATUS_PENDING;
+        } else {
+            $refundStatus = OrderCancellationRequest::REFUND_STATUS_FAILED;
+        }
+
+        OrderCancellationRequest::create([
+            'order_id' => $order->id,
+            'requested_by' => $customer->id,
+            'cancellation_reason' => $reason,
+            'status' => OrderCancellationRequest::STATUS_APPROVED,
+            'reviewed_by' => $admin->id,
+            'reviewed_at' => $order->created_at->copy()->addHours(rand(1, 6)),
+            'admin_notes' => 'Permintaan pembatalan disetujui. Refund akan diproses.',
+            'refund_initiated' => true,
+            'refund_amount' => $order->total_amount,
+            'refund_transaction_id' => 'REFUND-' . $order->order_number,
+            'refund_status' => $refundStatus,
+            'stock_restored' => ($refundStatus === OrderCancellationRequest::REFUND_STATUS_COMPLETED),
+        ]);
     }
 }
