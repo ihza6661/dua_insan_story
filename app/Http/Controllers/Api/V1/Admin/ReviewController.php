@@ -216,7 +216,7 @@ class ReviewController extends Controller
                 $result = DB::table('reviews')
                     ->select([
                         DB::raw('COUNT(*) as total_reviews'),
-                        DB::raw('SUM(CASE WHEN is_approved IS NULL THEN 1 ELSE 0 END) as pending_reviews'),
+                        DB::raw('SUM(CASE WHEN is_approved = 0 THEN 1 ELSE 0 END) as pending_reviews'),
                         DB::raw('SUM(CASE WHEN is_approved = 1 THEN 1 ELSE 0 END) as approved_reviews'),
                         DB::raw('SUM(CASE WHEN is_featured = 1 THEN 1 ELSE 0 END) as featured_reviews'),
                         DB::raw('AVG(CASE WHEN is_approved = 1 THEN rating ELSE NULL END) as average_rating'),

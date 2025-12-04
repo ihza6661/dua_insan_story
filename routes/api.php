@@ -94,10 +94,34 @@ Route::prefix('v1')->group(function () {
 
         // Promo Code Routes (Customer)
         Route::post('/promo-codes/validate', [\App\Http\Controllers\Api\V1\PromoCodeController::class, 'validate']);
+
+        // Wishlist Routes (Customer)
+        Route::get('/wishlist', [Customer\WishlistController::class, 'index']);
+        Route::post('/wishlist', [Customer\WishlistController::class, 'store']);
+        Route::delete('/wishlist/{id}', [Customer\WishlistController::class, 'destroy']);
+        Route::get('/wishlist/check/{productId}', [Customer\WishlistController::class, 'check']);
+
+        // Notification Routes (Customer)
+        Route::get('/notifications', [Customer\NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [Customer\NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/{id}/mark-as-read', [Customer\NotificationController::class, 'markAsRead']);
+        Route::post('/notifications/mark-all-read', [Customer\NotificationController::class, 'markAllAsRead']);
+
+        // Recommendation Routes (Customer - authenticated)
+        Route::get('/recommendations/personalized', [Customer\RecommendationController::class, 'personalized']);
+        Route::get('/recommendations/trending', [Customer\RecommendationController::class, 'trending']);
+        Route::get('/recommendations/new-arrivals', [Customer\RecommendationController::class, 'newArrivals']);
     });
 
     // Public promo code routes
     Route::get('/promo-codes/active', [\App\Http\Controllers\Api\V1\PromoCodeController::class, 'active']);
+
+    // Public wishlist share route
+    Route::get('/wishlist/shared/{token}', [Customer\WishlistController::class, 'getByShareToken']);
+
+    // Public recommendation routes
+    Route::get('/recommendations/popular', [Customer\RecommendationController::class, 'popular']);
+    Route::get('/recommendations/similar/{productId}', [Customer\RecommendationController::class, 'similar']);
 });
 
 // --- Endpoint untuk Administrator (Admin) ---

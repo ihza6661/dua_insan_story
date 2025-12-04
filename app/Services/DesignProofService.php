@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Storage;
 
 class DesignProofService
 {
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
+
     /**
      * Upload a new design proof
      */
@@ -56,6 +60,17 @@ class DesignProofService
 
         // Mark as notified
         $this->markCustomerNotified($designProof);
+
+        // Create notification
+        if (isset($this->notificationService)) {
+            $this->notificationService->notifyDesignProof(
+                userId: $designProof->orderItem->order->customer_id,
+                designProofId: $designProof->id,
+                action: 'uploaded',
+                orderNumber: $designProof->orderItem->order->order_number,
+                orderItemId: $designProof->order_item_id
+            );
+        }
 
         return $designProof;
     }

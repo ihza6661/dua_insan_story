@@ -23,7 +23,7 @@ class DesignProofServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new DesignProofService;
+        $this->service = app(DesignProofService::class);
         Storage::fake('public');
     }
 
