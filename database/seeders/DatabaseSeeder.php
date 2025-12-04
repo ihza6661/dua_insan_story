@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
             InvitationDetailSeeder::class,
             ReviewSeeder::class,
             ReviewImageSeeder::class,
+
+            // Promo Code seeder
+            PromoCodeSeeder::class,
         ]);
     }
 }
