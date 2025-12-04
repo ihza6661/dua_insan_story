@@ -10,6 +10,7 @@ use App\Mail\OrderShipped;
 use App\Mail\OrderStatusChanged;
 use App\Models\Order;
 use App\Repositories\Contracts\OrderRepositoryInterface;
+use App\Services\NotificationService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -27,7 +28,8 @@ class OrderController extends Controller
      * OrderController constructor.
      */
     public function __construct(
-        protected OrderRepositoryInterface $orderRepository
+        protected OrderRepositoryInterface $orderRepository,
+        protected NotificationService $notificationService
     ) {}
 
     /**
@@ -128,6 +130,14 @@ class OrderController extends Controller
             else {
                 Mail::to($customerEmail)->send(new OrderStatusChanged($order, $oldStatus, $newStatus));
             }
+
+            // Create notification for order status change
+            $this->notificationService->notifyOrderStatus(
+                userId: $order->customer_id,
+                orderId: $order->id,
+                status: $newStatus,
+                orderNumber: $order->order_number
+            );
         }
 
         return new OrderResource($order);
@@ -176,6 +186,14 @@ class OrderController extends Controller
                     } else {
                         Mail::to($customerEmail)->send(new OrderStatusChanged($order, $oldStatus, $newStatus));
                     }
+
+                    // Create notification for order status change
+                    $this->notificationService->notifyOrderStatus(
+                        userId: $order->customer_id,
+                        orderId: $order->id,
+                        status: $newStatus,
+                        orderNumber: $order->order_number
+                    );
                 }
             } catch (\Exception $e) {
                 $errors[] = [

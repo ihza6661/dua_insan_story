@@ -83,7 +83,7 @@ class PromoCodeController extends Controller
             'min_purchase' => $request->min_purchase,
             'max_discount' => $request->max_discount,
             'usage_limit' => $request->usage_limit,
-            'times_used' => 0,
+            'used_count' => 0,
             'valid_from' => $request->valid_from,
             'valid_until' => $request->valid_until,
             'is_active' => $request->get('is_active', true),
@@ -164,7 +164,7 @@ class PromoCodeController extends Controller
     public function destroy(PromoCode $promoCode): JsonResponse
     {
         // Check if promo code has been used
-        if ($promoCode->times_used > 0) {
+        if ($promoCode->used_count > 0) {
             return response()->json([
                 'message' => 'Cannot delete promo code that has been used. Consider deactivating it instead.',
             ], 422);
@@ -184,12 +184,12 @@ class PromoCodeController extends Controller
     {
         $totalPromoCodes = PromoCode::count();
         $activePromoCodes = PromoCode::active()->count();
-        $totalUsages = PromoCode::sum('times_used');
+        $totalUsages = PromoCode::sum('used_count');
         
-        $mostUsedPromoCodes = PromoCode::where('times_used', '>', 0)
-            ->orderBy('times_used', 'desc')
+        $mostUsedPromoCodes = PromoCode::where('used_count', '>', 0)
+            ->orderBy('used_count', 'desc')
             ->limit(10)
-            ->get(['code', 'discount_type', 'discount_value', 'times_used', 'usage_limit']);
+            ->get(['code', 'discount_type', 'discount_value', 'used_count', 'usage_limit']);
 
         return response()->json([
             'message' => 'Statistics retrieved successfully',
