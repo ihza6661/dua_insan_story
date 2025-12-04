@@ -14,9 +14,15 @@ class PromoCodeSeeder extends Seeder
     public function run(): void
     {
         // Clear existing promo codes
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('promo_codes')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // Use database-agnostic approach
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::table('promo_codes')->truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        } else {
+            // PostgreSQL approach
+            DB::table('promo_codes')->delete();
+        }
 
         $promoCodes = [
             [
