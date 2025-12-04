@@ -23,6 +23,9 @@ class OrderData
         public readonly ?string $shippingService = null,
         public readonly ?string $courier = null,
         public readonly string $paymentGateway = 'midtrans',
+        public readonly ?int $promoCodeId = null,
+        public readonly float $discountAmount = 0,
+        public readonly float $subtotalAmount = 0,
     ) {}
 
     /**
@@ -53,6 +56,9 @@ class OrderData
             'customer_id' => $this->customerId,
             'order_number' => $this->orderNumber,
             'total_amount' => $this->totalAmount,
+            'subtotal_amount' => $this->subtotalAmount,
+            'discount_amount' => $this->discountAmount,
+            'promo_code_id' => $this->promoCodeId,
             'shipping_address' => $this->shippingAddress,
             'shipping_cost' => $this->shippingCost,
             'shipping_method' => $this->shippingMethod,

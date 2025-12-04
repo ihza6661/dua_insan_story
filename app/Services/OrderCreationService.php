@@ -32,20 +32,26 @@ class OrderCreationService
         string $shippingAddress,
         string $shippingMethod,
         ?string $shippingService = null,
-        ?string $courier = null
+        ?string $courier = null,
+        ?int $promoCodeId = null,
+        float $discountAmount = 0
     ): Order {
         $cartTotal = $cart->items->sum(fn ($item) => $item->quantity * $item->unit_price);
-        $totalAmount = $cartTotal + $shippingCost;
+        $subtotalAmount = $cartTotal;
+        $totalAmount = $cartTotal - $discountAmount + $shippingCost;
 
         $orderData = new OrderData(
             customerId: $customerId,
             orderNumber: $this->generateOrderNumber(),
             totalAmount: $totalAmount,
+            subtotalAmount: $subtotalAmount,
+            discountAmount: $discountAmount,
             shippingAddress: $shippingAddress,
             shippingCost: $shippingCost,
             shippingMethod: $shippingMethod,
             shippingService: $shippingService,
             courier: $courier,
+            promoCodeId: $promoCodeId,
         );
 
         return $this->orderRepository->create($orderData->toArray());

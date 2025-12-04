@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CancelOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\Setting;
 use App\Services\MidtransService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class OrderController extends Controller
 {
@@ -145,5 +147,49 @@ class OrderController extends Controller
                 'message' => 'Gagal membuat permintaan pembatalan: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Download invoice PDF for an order.
+     */
+    public function downloadInvoice(Request $request, Order $order): Response
+    {
+        // Authorize: only order owner can download
+        if ($request->user()->id !== $order->customer_id) {
+            abort(403, 'Unauthorized to access this invoice.');
+        }
+
+        // Only allow invoice download for paid or completed orders
+        if (! in_array($order->payment_status, ['paid', 'partially_paid'])) {
+            abort(400, 'Invoice can only be downloaded for paid orders.');
+        }
+
+        // Load relationships needed for invoice
+        $order->load([
+            'items.product',
+            'items.variant.images',
+            'customer',
+            'invitationDetail',
+        ]);
+
+        // Eager load amount_paid for performance
+        $order->loadSum(['payments as paid_amount' => function ($q) {
+            $q->where('status', 'paid');
+        }], 'amount');
+
+        // Get company settings for invoice header
+        $settings = Setting::pluck('value', 'key')->toArray();
+
+        // Generate PDF from Blade template
+        $pdf = app('dompdf.wrapper')->loadView('invoices.order-invoice', [
+            'order' => $order,
+            'settings' => $settings,
+        ]);
+
+        // Set PDF options
+        $pdf->setPaper('a4', 'portrait');
+
+        // Return PDF as download
+        return $pdf->download("Invoice-{$order->order_number}.pdf");
     }
 }

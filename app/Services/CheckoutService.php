@@ -23,7 +23,8 @@ class CheckoutService
         protected CartService $cartService,
         protected OrderCreationService $orderCreationService,
         protected PaymentInitiationService $paymentService,
-        protected ShippingCalculationService $shippingService
+        protected ShippingCalculationService $shippingService,
+        protected PromoCodeService $promoCodeService
     ) {}
 
     /**
@@ -51,7 +52,25 @@ class CheckoutService
                 $photoPath = $request->file('prewedding_photo')->store('prewedding-photos', 'public');
             }
 
-            // Create the order
+            // Handle promo code validation and discount calculation
+            $promoCodeId = null;
+            $discountAmount = 0;
+            $cartTotal = $cart->items->sum(fn ($item) => $item->quantity * $item->unit_price);
+
+            if ($checkoutData->promoCode) {
+                $promoResult = $this->promoCodeService->validatePromoCode(
+                    $checkoutData->promoCode,
+                    $user,
+                    $cartTotal
+                );
+
+                if ($promoResult['valid']) {
+                    $discountAmount = $promoResult['discount'];
+                    $promoCodeId = $promoResult['code_details']['id'];
+                }
+            }
+
+            // Create the order with promo code
             $order = $this->orderCreationService->createOrderFromCart(
                 customerId: $user->id,
                 cart: $cart,
@@ -59,7 +78,9 @@ class CheckoutService
                 shippingAddress: $checkoutData->shippingAddress,
                 shippingMethod: $checkoutData->shippingMethod,
                 shippingService: $checkoutData->shippingService,
-                courier: $checkoutData->courier
+                courier: $checkoutData->courier,
+                promoCodeId: $promoCodeId,
+                discountAmount: $discountAmount
             );
 
             // Create invitation details
@@ -69,6 +90,16 @@ class CheckoutService
 
             // Create order items from cart
             $this->orderCreationService->createOrderItemsFromCart($order, $cart);
+
+            // Record promo code usage if applied
+            if ($promoCodeId && $discountAmount > 0) {
+                $this->promoCodeService->applyPromoCode(
+                    $order->id,
+                    $promoCodeId,
+                    $user->id,
+                    $discountAmount
+                );
+            }
 
             // Initiate payment
             $this->paymentService->initiatePayment($order, $checkoutData->paymentOption);

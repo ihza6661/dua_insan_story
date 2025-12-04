@@ -39,6 +39,7 @@ class StoreRequest extends FormRequest
             'shipping_service' => ['nullable', 'string', 'max:255', 'required_if:shipping_method,rajaongkir'],
             'courier' => ['nullable', 'string', 'max:255', 'required_if:shipping_method,rajaongkir'],
             'payment_option' => ['required', 'string', 'in:full,dp'],
+            'promo_code' => ['nullable', 'string', 'max:50', 'exists:promo_codes,code'],
         ];
     }
 
@@ -86,6 +87,10 @@ class StoreRequest extends FormRequest
             'gmaps_link.url' => 'Link Google Maps harus berupa URL yang valid.',
             'prewedding_photo.mimes' => 'File foto pre-wedding harus berupa gambar (jpg, jpeg, png, bmp, gif, svg, webp).',
             'prewedding_photo.max' => 'Ukuran foto pre-wedding tidak boleh lebih dari 5MB.',
+
+            'promo_code.string' => 'Kode promo harus berupa teks.',
+            'promo_code.max' => 'Kode promo tidak boleh lebih dari 50 karakter.',
+            'promo_code.exists' => 'Kode promo tidak valid.',
         ];
     }
 }

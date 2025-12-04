@@ -15,12 +15,18 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone_number' => $this->phone_number,
             'role' => $this->role,
-            $this->mergeWhen($this->whenLoaded('address'), [
-                'address' => $this->address->street ?? null,
-                'province_name' => $this->address->state ?? null,
-                'city_name' => $this->address->city ?? null,
-                'postal_code' => $this->address->postal_code ?? null,
-            ]),
+            'address' => $this->whenLoaded('address', function () {
+                return $this->address?->street;
+            }, null),
+            'province_name' => $this->whenLoaded('address', function () {
+                return $this->address?->state;
+            }, null),
+            'city_name' => $this->whenLoaded('address', function () {
+                return $this->address?->city;
+            }, null),
+            'postal_code' => $this->whenLoaded('address', function () {
+                return $this->address?->postal_code;
+            }, null),
         ];
     }
 }

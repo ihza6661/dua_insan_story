@@ -20,9 +20,11 @@ class ProfileController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
+        $user = $request->user()->load('address');
+
         return response()->json([
             'message' => 'User data retrieved successfully.',
-            'data' => new UserResource($request->user()),
+            'data' => new UserResource($user),
         ]);
     }
 
