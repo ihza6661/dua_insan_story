@@ -18,6 +18,7 @@ class AuthController extends Controller
     public function register(RegisterRequest $request, AuthService $authService): JsonResponse
     {
         $user = $authService->createUser($request->validated());
+        $user->load('address');
 
         return response()->json([
             'message' => 'Registrasi berhasil.',
@@ -33,7 +34,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        $user = User::where('email', $request['email'])->with('address')->firstOrFail();
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([

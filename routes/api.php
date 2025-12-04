@@ -74,6 +74,7 @@ Route::prefix('v1')->group(function () {
         // Rute untuk mengelola pesanan pengguna
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);
+        Route::get('/orders/{order}/invoice', [OrderController::class, 'downloadInvoice']);
         Route::post('/orders/{order}/retry-payment', [OrderController::class, 'retryPayment']);
         Route::post('/orders/{order}/cancel', [OrderController::class, 'requestCancellation']);
 
@@ -90,7 +91,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/reviews', [Customer\ReviewController::class, 'store']);
         Route::put('/reviews/{review}', [Customer\ReviewController::class, 'update']);
         Route::delete('/reviews/{review}', [Customer\ReviewController::class, 'destroy']);
+
+        // Promo Code Routes (Customer)
+        Route::post('/promo-codes/validate', [\App\Http\Controllers\Api\V1\PromoCodeController::class, 'validate']);
     });
+
+    // Public promo code routes
+    Route::get('/promo-codes/active', [\App\Http\Controllers\Api\V1\PromoCodeController::class, 'active']);
 });
 
 // --- Endpoint untuk Administrator (Admin) ---
@@ -144,4 +151,13 @@ Route::prefix('v1/admin')
         Route::post('/reviews/{review}/response', [Admin\ReviewController::class, 'addResponse'])->name('reviews.add-response');
         Route::delete('/reviews/{review}', [Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
         Route::delete('/review-images/{reviewImage}', [Admin\ReviewController::class, 'deleteImage'])->name('review-images.destroy');
+
+        // Promo Code Routes (Admin)
+        Route::get('/promo-codes', [Admin\PromoCodeController::class, 'index'])->name('promo-codes.index');
+        Route::post('/promo-codes', [Admin\PromoCodeController::class, 'store'])->name('promo-codes.store');
+        Route::get('/promo-codes/statistics', [Admin\PromoCodeController::class, 'statistics'])->name('promo-codes.statistics');
+        Route::get('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'show'])->name('promo-codes.show');
+        Route::put('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'update'])->name('promo-codes.update');
+        Route::delete('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'destroy'])->name('promo-codes.destroy');
+        Route::post('/promo-codes/{promoCode}/toggle-status', [Admin\PromoCodeController::class, 'toggleStatus'])->name('promo-codes.toggle-status');
     });

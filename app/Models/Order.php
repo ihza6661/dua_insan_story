@@ -70,8 +70,11 @@ class Order extends Model
 
     protected $fillable = [
         'customer_id',
+        'promo_code_id',
         'order_number',
         'total_amount',
+        'discount_amount',
+        'subtotal_amount',
         'shipping_address',
         'shipping_cost',
         'shipping_method',
@@ -95,6 +98,8 @@ class Order extends Model
 
     protected $casts = [
         'total_amount' => 'float',
+        'discount_amount' => 'float',
+        'subtotal_amount' => 'float',
         'shipping_cost' => 'float',
     ];
 
@@ -162,6 +167,14 @@ class Order extends Model
         return $this->hasOne(OrderCancellationRequest::class)
             ->where('status', OrderCancellationRequest::STATUS_PENDING)
             ->latestOfMany();
+    }
+
+    /**
+     * Get the promo code used for this order.
+     */
+    public function promoCode(): BelongsTo
+    {
+        return $this->belongsTo(PromoCode::class);
     }
 
     /**

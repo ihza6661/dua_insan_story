@@ -33,6 +33,9 @@ class CheckoutData
         public readonly ?string $preweddingPhotoPath = null,
         public readonly ?string $shippingService = null,
         public readonly ?string $courier = null,
+        public readonly ?string $promoCode = null,
+        public readonly float $discountAmount = 0,
+        public readonly float $subtotalAmount = 0,
     ) {}
 
     /**
@@ -61,6 +64,9 @@ class CheckoutData
             preweddingPhotoPath: $data['prewedding_photo_path'] ?? null,
             shippingService: $data['shipping_service'] ?? null,
             courier: $data['courier'] ?? null,
+            promoCode: $data['promo_code'] ?? null,
+            discountAmount: (float) ($data['discount_amount'] ?? 0),
+            subtotalAmount: (float) ($data['subtotal_amount'] ?? 0),
         );
     }
 

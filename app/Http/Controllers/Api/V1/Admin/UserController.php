@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Admin\User\StoreRequest;
 use App\Http\Requests\Api\V1\Admin\User\UpdateRequest;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\V1\UserResource;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +26,8 @@ class UserController extends Controller
         $role = $request->query('role', 'admin');
         $perPage = $request->query('per_page', 20);
 
-        $users = User::where('role', $role)
+        $users = User::with('address')
+            ->where('role', $role)
             ->latest()
             ->paginate($perPage);
 
@@ -39,6 +40,7 @@ class UserController extends Controller
         $role = $request->input('role', 'admin');
 
         $user = $this->userService->createUser($validatedData, $role);
+        $user->load('address');
 
         return response()->json([
             'message' => 'Akun '.$role.' berhasil dibuat.',
@@ -48,12 +50,15 @@ class UserController extends Controller
 
     public function show(User $user): UserResource
     {
+        $user->load('address');
+
         return new UserResource($user);
     }
 
     public function update(UpdateRequest $request, User $user): JsonResponse
     {
         $admin = $this->userService->updateAdminUser($user, $request->validated());
+        $admin->load('address');
 
         return response()->json([
             'message' => 'Akun admin berhasil diperbarui.',
