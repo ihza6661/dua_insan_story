@@ -51,6 +51,7 @@ class OrderServiceTest extends TestCase
             'items.product.variants.images',
             'items.product.variants',
             'items.variant.options',
+            'items.review',
             'invitationDetail',
             'payments',
         ];

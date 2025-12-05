@@ -32,6 +32,7 @@ class OrderService
             'items.product.variants.images',
             'items.product.variants',
             'items.variant.options',
+            'items.review',
             'invitationDetail',
             'payments',
         ]);
@@ -46,6 +47,7 @@ class OrderService
             'items.product.variants.images',
             'items.product.variants',
             'items.variant.options',
+            'items.review',
             'invitationDetail',
             'payments',
         ]);

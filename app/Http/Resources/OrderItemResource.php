@@ -16,8 +16,7 @@ class OrderItemResource extends JsonResource
             'sub_total' => $this->sub_total,
             'product' => new ProductResource($this->product),
             'variant' => new ProductVariantResource($this->variant),
-            'custom_data' => $this->customData->form_data ?? null,
-            'can_review' => $this->canReview(),
+            'can_review' => $this->canBeReviewed(),
             'review' => $this->review ? [
                 'id' => $this->review->id,
                 'rating' => $this->review->rating,
