@@ -28,13 +28,22 @@ class RecommendationController extends Controller
         return response()->json([
             'message' => 'Personalized recommendations retrieved successfully',
             'data' => $recommendations->map(function ($product) {
+                // Get featured image (first featured image or first image)
+                $featuredImage = $product->images->firstWhere('is_featured', true) ?? $product->images->first();
+                
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'base_price' => $product->base_price,
                     'category' => $product->category,
-                    'images' => $product->images,
+                    'featured_image' => $featuredImage ? [
+                        'id' => $featuredImage->id,
+                        'image' => $featuredImage->image,
+                        'image_url' => $featuredImage->image_url,
+                        'alt_text' => $featuredImage->alt_text,
+                        'is_featured' => $featuredImage->is_featured,
+                    ] : null,
                     'is_active' => $product->is_active,
                 ];
             }),
@@ -51,13 +60,22 @@ class RecommendationController extends Controller
         return response()->json([
             'message' => 'Popular products retrieved successfully',
             'data' => $popular->map(function ($product) {
+                // Get featured image (first featured image or first image)
+                $featuredImage = $product->images->firstWhere('is_featured', true) ?? $product->images->first();
+                
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'base_price' => $product->base_price,
                     'category' => $product->category,
-                    'images' => $product->images,
+                    'featured_image' => $featuredImage ? [
+                        'id' => $featuredImage->id,
+                        'image' => $featuredImage->image,
+                        'image_url' => $featuredImage->image_url,
+                        'alt_text' => $featuredImage->alt_text,
+                        'is_featured' => $featuredImage->is_featured,
+                    ] : null,
                     'is_active' => $product->is_active,
                     'order_count' => $product->order_count ?? 0,
                 ];
@@ -75,13 +93,22 @@ class RecommendationController extends Controller
         return response()->json([
             'message' => 'Similar products retrieved successfully',
             'data' => $similar->map(function ($product) {
+                // Get featured image (first featured image or first image)
+                $featuredImage = $product->images->firstWhere('is_featured', true) ?? $product->images->first();
+                
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'base_price' => $product->base_price,
                     'category' => $product->category,
-                    'images' => $product->images,
+                    'featured_image' => $featuredImage ? [
+                        'id' => $featuredImage->id,
+                        'image' => $featuredImage->image,
+                        'image_url' => $featuredImage->image_url,
+                        'alt_text' => $featuredImage->alt_text,
+                        'is_featured' => $featuredImage->is_featured,
+                    ] : null,
                     'is_active' => $product->is_active,
                 ];
             }),
@@ -98,13 +125,22 @@ class RecommendationController extends Controller
         return response()->json([
             'message' => 'Trending products retrieved successfully',
             'data' => $trending->map(function ($product) {
+                // Get featured image (first featured image or first image)
+                $featuredImage = $product->images->firstWhere('is_featured', true) ?? $product->images->first();
+                
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'base_price' => $product->base_price,
                     'category' => $product->category,
-                    'images' => $product->images,
+                    'featured_image' => $featuredImage ? [
+                        'id' => $featuredImage->id,
+                        'image' => $featuredImage->image,
+                        'image_url' => $featuredImage->image_url,
+                        'alt_text' => $featuredImage->alt_text,
+                        'is_featured' => $featuredImage->is_featured,
+                    ] : null,
                     'is_active' => $product->is_active,
                     'recent_order_count' => $product->recent_order_count ?? 0,
                 ];
@@ -122,13 +158,22 @@ class RecommendationController extends Controller
         return response()->json([
             'message' => 'New arrivals retrieved successfully',
             'data' => $newArrivals->map(function ($product) {
+                // Get featured image (first featured image or first image)
+                $featuredImage = $product->images->firstWhere('is_featured', true) ?? $product->images->first();
+                
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'base_price' => $product->base_price,
                     'category' => $product->category,
-                    'images' => $product->images,
+                    'featured_image' => $featuredImage ? [
+                        'id' => $featuredImage->id,
+                        'image' => $featuredImage->image,
+                        'image_url' => $featuredImage->image_url,
+                        'alt_text' => $featuredImage->alt_text,
+                        'is_featured' => $featuredImage->is_featured,
+                    ] : null,
                     'is_active' => $product->is_active,
                     'created_at' => $product->created_at,
                 ];
