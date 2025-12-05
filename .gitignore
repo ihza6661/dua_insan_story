@@ -22,3 +22,13 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Storage: Exclude user uploads, keep seed data
+/storage/app/public/design-proofs/
+/storage/app/public/prewedding-photos/
+
+# Storage: Keep seed images (product-images, category-images, review-images/*-sample-*.jpg)
+# But exclude user-uploaded review images (random hash filenames)
+/storage/app/public/review-images/*
+!/storage/app/public/review-images/*-sample-*.jpg
+!/storage/app/public/review-images/product-detail-*.jpg
