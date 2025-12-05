@@ -15,30 +15,47 @@ class WishlistController extends Controller
      */
     public function index(): JsonResponse
     {
-        $wishlists = Wishlist::with(['product.category'])
+        $wishlists = Wishlist::with(['product.category', 'product.images'])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
 
+        // Get the share token and link from the first wishlist item (all belong to same user)
+        $firstWishlist = $wishlists->first();
+
         return response()->json([
             'message' => 'Wishlist retrieved successfully',
-            'data' => $wishlists->map(function ($wishlist) {
-                return [
-                    'id' => $wishlist->id,
-                    'product' => [
-                        'id' => $wishlist->product->id,
-                        'name' => $wishlist->product->name,
-                        'base_price' => $wishlist->product->base_price,
-                        'slug' => $wishlist->product->slug,
-                        'category' => $wishlist->product->category,
-                        'featured_image' => $wishlist->product->featured_image ?? null,
-                        'is_active' => $wishlist->product->is_active,
-                    ],
-                    'share_token' => $wishlist->share_token,
-                    'shareable_link' => $wishlist->getShareableLink(),
-                    'added_at' => $wishlist->created_at,
-                ];
-            }),
+            'data' => [
+                'items' => $wishlists->map(function ($wishlist) {
+                    // Get featured image (first featured image or first image)
+                    $featuredImage = $wishlist->product->images->firstWhere('is_featured', true) 
+                        ?? $wishlist->product->images->first();
+                    
+                    return [
+                        'id' => $wishlist->id,
+                        'product' => [
+                            'id' => $wishlist->product->id,
+                            'name' => $wishlist->product->name,
+                            'base_price' => $wishlist->product->base_price,
+                            'slug' => $wishlist->product->slug,
+                            'category' => $wishlist->product->category,
+                            'featured_image' => $featuredImage ? [
+                                'id' => $featuredImage->id,
+                                'image' => $featuredImage->image,
+                                'image_url' => $featuredImage->image_url,
+                                'alt_text' => $featuredImage->alt_text,
+                                'is_featured' => $featuredImage->is_featured,
+                            ] : null,
+                            'is_active' => $wishlist->product->is_active,
+                        ],
+                        'share_token' => $wishlist->share_token,
+                        'shareable_link' => $wishlist->getShareableLink(),
+                        'added_at' => $wishlist->created_at,
+                    ];
+                }),
+                'share_token' => $firstWishlist?->share_token,
+                'shareable_link' => $firstWishlist?->getShareableLink(),
+            ],
         ]);
     }
 
@@ -71,7 +88,11 @@ class WishlistController extends Controller
             'product_id' => $productId,
         ]);
 
-        $wishlist->load(['product.category']);
+        $wishlist->load(['product.category', 'product.images']);
+
+        // Get featured image (first featured image or first image)
+        $featuredImage = $wishlist->product->images->firstWhere('is_featured', true) 
+            ?? $wishlist->product->images->first();
 
         return response()->json([
             'message' => 'Product added to wishlist',
@@ -83,7 +104,13 @@ class WishlistController extends Controller
                     'base_price' => $wishlist->product->base_price,
                     'slug' => $wishlist->product->slug,
                     'category' => $wishlist->product->category,
-                    'featured_image' => $wishlist->product->featuredImage,
+                    'featured_image' => $featuredImage ? [
+                        'id' => $featuredImage->id,
+                        'image' => $featuredImage->image,
+                        'image_url' => $featuredImage->image_url,
+                        'alt_text' => $featuredImage->alt_text,
+                        'is_featured' => $featuredImage->is_featured,
+                    ] : null,
                 ],
                 'share_token' => $wishlist->share_token,
                 'shareable_link' => $wishlist->getShareableLink(),
@@ -119,7 +146,7 @@ class WishlistController extends Controller
      */
     public function getByShareToken(string $token): JsonResponse
     {
-        $wishlists = Wishlist::with(['product.category', 'user'])
+        $wishlists = Wishlist::with(['product.category', 'product.images', 'user'])
             ->where('share_token', $token)
             ->orWhereHas('user', function ($query) use ($token) {
                 // Get all wishlist items for the user who owns this share token
@@ -146,6 +173,10 @@ class WishlistController extends Controller
                     'name' => $owner->full_name,
                 ],
                 'items' => $wishlists->map(function ($wishlist) {
+                    // Get featured image (first featured image or first image)
+                    $featuredImage = $wishlist->product->images->firstWhere('is_featured', true) 
+                        ?? $wishlist->product->images->first();
+                    
                     return [
                         'id' => $wishlist->id,
                         'product' => [
@@ -154,7 +185,13 @@ class WishlistController extends Controller
                             'base_price' => $wishlist->product->base_price,
                             'slug' => $wishlist->product->slug,
                             'category' => $wishlist->product->category,
-                            'featured_image' => $wishlist->product->featured_image ?? null,
+                            'featured_image' => $featuredImage ? [
+                                'id' => $featuredImage->id,
+                                'image' => $featuredImage->image,
+                                'image_url' => $featuredImage->image_url,
+                                'alt_text' => $featuredImage->alt_text,
+                                'is_featured' => $featuredImage->is_featured,
+                            ] : null,
                             'is_active' => $wishlist->product->is_active,
                         ],
                         'added_at' => $wishlist->created_at,
@@ -169,12 +206,16 @@ class WishlistController extends Controller
      */
     public function check(int $productId): JsonResponse
     {
-        $inWishlist = Wishlist::where('user_id', Auth::id())
+        $wishlist = Wishlist::where('user_id', Auth::id())
             ->where('product_id', $productId)
-            ->exists();
+            ->first();
 
         return response()->json([
-            'in_wishlist' => $inWishlist,
+            'message' => 'Wishlist status retrieved',
+            'data' => [
+                'in_wishlist' => (bool) $wishlist,
+                'wishlist_id' => $wishlist?->id,
+            ],
         ]);
     }
 }

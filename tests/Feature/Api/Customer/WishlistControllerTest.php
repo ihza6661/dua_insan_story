@@ -41,7 +41,11 @@ class WishlistControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'message',
-                'data',
+                'data' => [
+                    'items',
+                    'share_token',
+                    'shareable_link',
+                ],
             ]);
 
         $this->assertDatabaseHas('wishlists', [
@@ -132,7 +136,7 @@ class WishlistControllerTest extends TestCase
     #[Test]
     public function user_can_check_if_product_is_in_wishlist(): void
     {
-        Wishlist::factory()->create([
+        $wishlist = Wishlist::factory()->create([
             'user_id' => $this->user->id,
             'product_id' => $this->product->id,
         ]);
@@ -141,8 +145,40 @@ class WishlistControllerTest extends TestCase
             ->getJson("/api/v1/wishlist/check/{$this->product->id}");
 
         $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'in_wishlist',
+                    'wishlist_id',
+                ],
+            ])
             ->assertJson([
-                'in_wishlist' => true,
+                'data' => [
+                    'in_wishlist' => true,
+                    'wishlist_id' => $wishlist->id,
+                ],
+            ]);
+    }
+
+    #[Test]
+    public function user_can_check_if_product_is_not_in_wishlist(): void
+    {
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v1/wishlist/check/{$this->product->id}");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'in_wishlist',
+                    'wishlist_id',
+                ],
+            ])
+            ->assertJson([
+                'data' => [
+                    'in_wishlist' => false,
+                    'wishlist_id' => null,
+                ],
             ]);
     }
 
@@ -179,5 +215,119 @@ class WishlistControllerTest extends TestCase
         ]);
 
         $response->assertUnauthorized();
+    }
+
+    #[Test]
+    public function wishlist_items_include_featured_image_structure(): void
+    {
+        Wishlist::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson('/api/v1/wishlist');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'items' => [
+                        '*' => [
+                            'id',
+                            'product' => [
+                                'id',
+                                'name',
+                                'base_price',
+                                'slug',
+                                'category',
+                                'featured_image',
+                                'is_active',
+                            ],
+                            'share_token',
+                            'shareable_link',
+                            'added_at',
+                        ],
+                    ],
+                    'share_token',
+                    'shareable_link',
+                ],
+            ]);
+
+        // Verify featured_image is null when product has no images
+        $data = $response->json('data.items.0');
+        $this->assertArrayHasKey('featured_image', $data['product']);
+    }
+
+    #[Test]
+    public function adding_product_to_wishlist_returns_featured_image(): void
+    {
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->postJson('/api/v1/wishlist', [
+                'product_id' => $this->product->id,
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'id',
+                    'product' => [
+                        'id',
+                        'name',
+                        'base_price',
+                        'slug',
+                        'category',
+                        'featured_image',
+                    ],
+                    'share_token',
+                    'shareable_link',
+                    'added_at',
+                ],
+            ]);
+
+        // Verify featured_image key exists
+        $data = $response->json('data.product');
+        $this->assertArrayHasKey('featured_image', $data);
+    }
+
+    #[Test]
+    public function shared_wishlist_items_include_featured_image(): void
+    {
+        $wishlist = Wishlist::factory()->create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+        ]);
+
+        $response = $this->getJson("/api/v1/wishlist/shared/{$wishlist->share_token}");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'owner' => [
+                        'name',
+                    ],
+                    'items' => [
+                        '*' => [
+                            'id',
+                            'product' => [
+                                'id',
+                                'name',
+                                'base_price',
+                                'slug',
+                                'category',
+                                'featured_image',
+                                'is_active',
+                            ],
+                            'added_at',
+                        ],
+                    ],
+                ],
+            ]);
+
+        // Verify featured_image key exists
+        $data = $response->json('data.items.0');
+        $this->assertArrayHasKey('featured_image', $data['product']);
     }
 }
