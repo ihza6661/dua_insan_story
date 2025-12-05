@@ -31,9 +31,10 @@ class ProductController extends Controller
         return ProductResource::collection($products);
     }
 
-    public function show(string $id): ProductResource
+    public function show(string $identifier): ProductResource
     {
-        $product = $this->productService->findPubliclyVisibleProduct((int) $id);
+        // Support both ID and slug
+        $product = $this->productService->findPubliclyVisibleProduct($identifier);
 
         $product->load(['category', 'variants.options.attribute', 'variants.images', 'addOns']);
 

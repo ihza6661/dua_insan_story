@@ -125,10 +125,16 @@ class ProductService
     }
 
     /**
-     * Find publicly visible product by ID.
+     * Find publicly visible product by ID or slug.
      */
-    public function findPubliclyVisibleProduct(int $productId): Product
+    public function findPubliclyVisibleProduct(int|string $identifier): Product
     {
-        return $this->productRepository->findActiveProduct($productId, ['category', 'variants.images']);
+        // If identifier is numeric, treat as ID
+        if (is_numeric($identifier)) {
+            return $this->productRepository->findActiveProduct((int) $identifier, ['category', 'variants.images']);
+        }
+        
+        // Otherwise treat as slug
+        return $this->productRepository->findActiveProductBySlug($identifier, ['category', 'variants.images']);
     }
 }
