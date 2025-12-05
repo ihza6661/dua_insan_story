@@ -88,6 +88,7 @@ Route::prefix('v1')->group(function () {
 
         // Review Routes (Customer)
         Route::get('/reviews/my', [Customer\ReviewController::class, 'myReviews']);
+        Route::get('/reviews/reviewable', [Customer\ReviewController::class, 'getReviewableProducts']);
         Route::post('/reviews', [Customer\ReviewController::class, 'store']);
         Route::put('/reviews/{review}', [Customer\ReviewController::class, 'update']);
         Route::delete('/reviews/{review}', [Customer\ReviewController::class, 'destroy']);

@@ -201,4 +201,52 @@ class ReviewController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get products that the customer can review from completed orders.
+     */
+    public function getReviewableProducts(Request $request): JsonResponse
+    {
+        try {
+            $customerId = $request->user()->id;
+
+            $reviewableItems = \App\Models\OrderItem::whereHas('order', function ($query) use ($customerId) {
+                $query->where('customer_id', $customerId)
+                    ->whereIn('order_status', ['Completed', 'Delivered']);
+            })
+                ->whereDoesntHave('review')
+                ->with(['product.variants.images', 'order'])
+                ->latest()
+                ->get();
+
+            return response()->json([
+                'message' => 'Produk yang dapat diulas berhasil diambil.',
+                'data' => $reviewableItems->map(function ($item) {
+                    // Get featured image from first variant
+                    $defaultVariant = $item->product->variants->first();
+                    $featuredImage = null;
+                    if ($defaultVariant && $defaultVariant->images->isNotEmpty()) {
+                        $featuredImage = $defaultVariant->images->firstWhere('is_featured', true)
+                                      ?? $defaultVariant->images->first();
+                    }
+
+                    return [
+                        'order_item_id' => $item->id,
+                        'order_number' => $item->order->order_number,
+                        'product' => [
+                            'id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'image' => $featuredImage?->image_url,
+                        ],
+                        'purchased_at' => $item->order->created_at,
+                    ];
+                }),
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat mengambil produk yang dapat diulas.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
