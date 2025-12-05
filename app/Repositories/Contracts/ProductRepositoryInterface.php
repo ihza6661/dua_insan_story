@@ -54,6 +54,11 @@ interface ProductRepositoryInterface
     public function findActiveProduct(int $id, array $relations = []): Product;
 
     /**
+     * Find active product by slug.
+     */
+    public function findActiveProductBySlug(string $slug, array $relations = []): Product;
+
+    /**
      * Check if product has dependencies (orders or cart items).
      */
     public function hasDependencies(Product $product): bool;

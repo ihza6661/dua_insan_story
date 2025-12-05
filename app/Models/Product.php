@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * Class Product
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $category_id
  * @property string $name
+ * @property string $slug
  * @property string $description
  * @property float $base_price
  * @property int $weight
@@ -28,12 +30,66 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'name',
+        'slug',
         'description',
         'base_price',
         'weight',
         'min_order_quantity',
         'is_active',
     ];
+
+    /**
+     * Boot the model and register observers.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-generate slug from name when creating
+        static::creating(function ($product) {
+            if (empty($product->slug)) {
+                $product->slug = static::generateUniqueSlug($product->name);
+            }
+        });
+
+        // Update slug when name changes
+        static::updating(function ($product) {
+            if ($product->isDirty('name') && empty($product->slug)) {
+                $product->slug = static::generateUniqueSlug($product->name);
+            }
+        });
+    }
+
+    /**
+     * Generate a unique slug for the product.
+     */
+    protected static function generateUniqueSlug(string $name, ?int $id = null): string
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::slugExists($slug, $id)) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Check if slug exists (excluding current product).
+     */
+    protected static function slugExists(string $slug, ?int $excludeId = null): bool
+    {
+        $query = static::where('slug', $slug);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
 
     /**
      * Get the attributes that should be cast.

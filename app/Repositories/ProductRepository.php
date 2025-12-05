@@ -132,6 +132,17 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function findActiveProductBySlug(string $slug, array $relations = []): Product
+    {
+        return $this->model->with($relations)
+            ->active()
+            ->where('slug', $slug)
+            ->firstOrFail();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function hasDependencies(Product $product): bool
     {
         return $product->orderItems()->exists() || $product->cartItems()->exists();
