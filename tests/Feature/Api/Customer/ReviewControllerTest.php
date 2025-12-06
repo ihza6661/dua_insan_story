@@ -314,7 +314,7 @@ class ReviewControllerTest extends TestCase
         $response = $this->actingAs($this->customer)
             ->putJson("/api/v1/reviews/{$review->id}", [
                 'rating' => 1,
-                'comment' => 'Bad',
+                'comment' => 'This is a bad product review comment.',
             ]);
 
         $response->assertStatus(400); // Service throws exception
