@@ -30,7 +30,7 @@ class StoreRequest extends FormRequest
             'reception_time' => ['required', 'string', 'max:100'],
             'reception_location' => ['required', 'string', 'max:255'],
 
-            'gmaps_link' => ['nullable', 'url', 'max:1000'],
+            'gmaps_link' => ['nullable', 'url', 'regex:/^https?:\/\/(www\.)?google\.com\/maps/', 'max:1000'],
             'prewedding_photo' => ['nullable', 'mimes:jpeg,png,bmp,gif,svg,webp', 'max:5120'],
 
             'postal_code' => ['required', 'string', 'digits:5'],
@@ -85,6 +85,7 @@ class StoreRequest extends FormRequest
             'reception_location.required' => 'Lokasi resepsi wajib diisi.',
 
             'gmaps_link.url' => 'Link Google Maps harus berupa URL yang valid.',
+            'gmaps_link.regex' => 'Link harus merupakan URL Google Maps yang valid (https://google.com/maps/...).',
             'prewedding_photo.mimes' => 'File foto pre-wedding harus berupa gambar (jpg, jpeg, png, bmp, gif, svg, webp).',
             'prewedding_photo.max' => 'Ukuran foto pre-wedding tidak boleh lebih dari 5MB.',
 

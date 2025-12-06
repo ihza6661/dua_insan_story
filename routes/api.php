@@ -29,8 +29,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
 
     // --- Rute Publik (Tidak Perlu Login) ---
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    // Auth routes with aggressive rate limiting (5 requests per minute)
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/guest-checkout', [CheckoutController::class, 'store']);
 
     Route::get('/rajaongkir/provinces', [RajaOngkirController::class, 'getProvinces']);
@@ -45,10 +46,10 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('gallery-items', Customer\GalleryItemController::class)->only(['index', 'show']);
 
         // Public review routes
-        Route::get('/products/{productId}/reviews', [Customer\ReviewController::class, 'index']);
-        Route::get('/products/{productId}/reviews/summary', [Customer\ReviewController::class, 'getRatingSummary']);
-        Route::get('/reviews/{review}', [Customer\ReviewController::class, 'show']);
-        Route::post('/reviews/{review}/helpful', [Customer\ReviewController::class, 'markAsHelpful']);
+        Route::get('/products/{productId}/reviews', [Customer\ReviewController::class, 'index'])->middleware('throttle:30,1');
+        Route::get('/products/{productId}/reviews/summary', [Customer\ReviewController::class, 'getRatingSummary'])->middleware('throttle:30,1');
+        Route::get('/reviews/{review}', [Customer\ReviewController::class, 'show'])->middleware('throttle:30,1');
+        Route::post('/reviews/{review}/helpful', [Customer\ReviewController::class, 'markAsHelpful'])->middleware('throttle:10,1');
     });
 
     // --- Rute dengan Autentikasi Opsional (Untuk Keranjang Tamu) ---
@@ -89,8 +90,8 @@ Route::prefix('v1')->group(function () {
         // Review Routes (Customer)
         Route::get('/reviews/my', [Customer\ReviewController::class, 'myReviews']);
         Route::get('/reviews/reviewable', [Customer\ReviewController::class, 'getReviewableProducts']);
-        Route::post('/reviews', [Customer\ReviewController::class, 'store']);
-        Route::put('/reviews/{review}', [Customer\ReviewController::class, 'update']);
+        Route::post('/reviews', [Customer\ReviewController::class, 'store'])->middleware('throttle:5,60'); // 5 per hour
+        Route::put('/reviews/{review}', [Customer\ReviewController::class, 'update'])->middleware('throttle:5,60'); // 5 per hour
         Route::delete('/reviews/{review}', [Customer\ReviewController::class, 'destroy']);
 
         // Promo Code Routes (Customer)

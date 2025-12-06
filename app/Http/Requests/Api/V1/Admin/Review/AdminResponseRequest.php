@@ -14,7 +14,7 @@ class AdminResponseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'admin_response' => ['required', 'string', 'max:500'],
+            'admin_response' => ['required', 'string', 'min:10', 'max:500'],
         ];
     }
 
@@ -22,6 +22,7 @@ class AdminResponseRequest extends FormRequest
     {
         return [
             'admin_response.required' => 'Respon admin wajib diisi.',
+            'admin_response.min' => 'Respon admin minimal harus 10 karakter.',
             'admin_response.max' => 'Respon admin tidak boleh lebih dari 500 karakter.',
         ];
     }
