@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle.api' => \App\Http\Middleware\ApiRateLimiter::class,
         ]);
 
+        // Add security headers to all responses
+        $middleware->append(\App\Http\Middleware\AddSecurityHeaders::class);
+
         $middleware->validateCsrfTokens(except: [
             'v1/webhook/midtrans',
             'midtrans/webhook',

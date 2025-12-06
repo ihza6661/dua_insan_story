@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\SecurityHelper;
 use App\Models\Review;
 use App\Models\ReviewImage;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
@@ -37,15 +38,27 @@ class ReviewService
             throw new Exception('Anda tidak dapat memberikan ulasan untuk item pesanan ini.');
         }
 
+        // Prevent review spam - one review per product per 24 hours
+        $recentReview = Review::where('customer_id', $customerId)
+            ->where('product_id', $validatedData['product_id'])
+            ->where('created_at', '>', now()->subHours(24))
+            ->exists();
+            
+        if ($recentReview) {
+            throw new Exception('Anda hanya dapat memberikan ulasan untuk produk ini sekali per 24 jam.');
+        }
+
         DB::beginTransaction();
         try {
-            // Create the review
+            // Create the review with sanitized comment
             $reviewData = [
                 'order_item_id' => $validatedData['order_item_id'],
                 'customer_id' => $customerId,
                 'product_id' => $validatedData['product_id'],
                 'rating' => $validatedData['rating'],
-                'comment' => $validatedData['comment'] ?? null,
+                'comment' => isset($validatedData['comment']) 
+                    ? SecurityHelper::sanitizeText($validatedData['comment'])
+                    : null,
                 'is_verified' => true, // Always verified for order-based reviews
                 'is_approved' => true, // Auto-approve by default (can be changed to false for moderation)
             ];
@@ -82,7 +95,9 @@ class ReviewService
         try {
             $updateData = [
                 'rating' => $validatedData['rating'],
-                'comment' => $validatedData['comment'] ?? null,
+                'comment' => isset($validatedData['comment'])
+                    ? SecurityHelper::sanitizeText($validatedData['comment'])
+                    : null,
             ];
 
             $review = $this->reviewRepository->update($review, $updateData);
@@ -183,7 +198,7 @@ class ReviewService
     public function addAdminResponse(Review $review, int $adminId, string $response): Review
     {
         $data = [
-            'admin_response' => $response,
+            'admin_response' => SecurityHelper::sanitizeText($response),
             'admin_responder_id' => $adminId,
             'admin_responded_at' => now(),
         ];

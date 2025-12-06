@@ -15,6 +15,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
+        "mews/purifier": "^3.4",
         "midtrans/midtrans-php": "^2.6"
     },
     "require-dev": {
@@ -31,7 +32,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/SecurityHelper.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

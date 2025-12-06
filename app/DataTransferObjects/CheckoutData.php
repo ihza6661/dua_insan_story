@@ -2,6 +2,8 @@
 
 namespace App\DataTransferObjects;
 
+use App\Helpers\SecurityHelper;
+
 /**
  * Class CheckoutData
  *
@@ -40,27 +42,28 @@ class CheckoutData
 
     /**
      * Create from array (typically from validated request).
+     * Sanitizes all user input to prevent XSS attacks.
      */
     public static function fromArray(array $data): self
     {
         return new self(
-            brideFullName: $data['bride_full_name'],
-            groomFullName: $data['groom_full_name'],
-            brideNickname: $data['bride_nickname'],
-            groomNickname: $data['groom_nickname'],
-            brideParents: $data['bride_parents'],
-            groomParents: $data['groom_parents'],
+            brideFullName: SecurityHelper::sanitizeText($data['bride_full_name']),
+            groomFullName: SecurityHelper::sanitizeText($data['groom_full_name']),
+            brideNickname: SecurityHelper::sanitizeText($data['bride_nickname']),
+            groomNickname: SecurityHelper::sanitizeText($data['groom_nickname']),
+            brideParents: SecurityHelper::sanitizeText($data['bride_parents']),
+            groomParents: SecurityHelper::sanitizeText($data['groom_parents']),
             akadDate: $data['akad_date'],
             akadTime: $data['akad_time'],
-            akadLocation: $data['akad_location'],
+            akadLocation: SecurityHelper::sanitizeText($data['akad_location']),
             receptionDate: $data['reception_date'],
             receptionTime: $data['reception_time'],
-            receptionLocation: $data['reception_location'],
-            shippingAddress: $data['shipping_address'],
+            receptionLocation: SecurityHelper::sanitizeText($data['reception_location']),
+            shippingAddress: SecurityHelper::sanitizeText($data['shipping_address']),
             shippingMethod: $data['shipping_method'],
             shippingCost: (float) ($data['shipping_cost'] ?? 0),
             paymentOption: $data['payment_option'] ?? 'full',
-            gmapsLink: $data['gmaps_link'] ?? null,
+            gmapsLink: isset($data['gmaps_link']) ? SecurityHelper::sanitizeUrl($data['gmaps_link']) : null,
             preweddingPhotoPath: $data['prewedding_photo_path'] ?? null,
             shippingService: $data['shipping_service'] ?? null,
             courier: $data['courier'] ?? null,

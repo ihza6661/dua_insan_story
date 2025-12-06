@@ -17,7 +17,7 @@ class StoreRequest extends FormRequest
             'order_item_id' => ['required', 'integer', 'exists:order_items,id'],
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'comment' => ['nullable', 'string', 'max:1000'],
+            'comment' => ['nullable', 'string', 'min:10', 'max:1000'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'], // 5MB max per image
         ];
@@ -34,6 +34,7 @@ class StoreRequest extends FormRequest
             'rating.integer' => 'Rating harus berupa angka.',
             'rating.min' => 'Rating minimal adalah 1 bintang.',
             'rating.max' => 'Rating maksimal adalah 5 bintang.',
+            'comment.min' => 'Komentar minimal harus 10 karakter agar lebih bermakna.',
             'comment.max' => 'Komentar tidak boleh lebih dari 1000 karakter.',
             'images.max' => 'Maksimal 5 gambar dapat diunggah.',
             'images.*.image' => 'File harus berupa gambar.',

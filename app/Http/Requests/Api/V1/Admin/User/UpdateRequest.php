@@ -20,7 +20,7 @@ class UpdateRequest extends FormRequest
             'full_name' => ['sometimes', 'required', 'string', 'max:255'],
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($userId)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'phone_number' => ['sometimes', 'nullable', 'string', 'max:25'],
+            'phone_number' => ['sometimes', 'nullable', 'string', 'regex:/^(\+62|62|0)[0-9]{8,13}$/', 'max:25'],
         ];
     }
 
@@ -33,6 +33,7 @@ class UpdateRequest extends FormRequest
             'email.unique' => 'Email ini sudah terdaftar.',
             'password.min' => 'Password minimal harus 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'phone_number.regex' => 'Format nomor telepon tidak valid. Gunakan format Indonesia (contoh: 0812XXXXXXXX, +62812XXXXXXXX).',
         ];
     }
 }
