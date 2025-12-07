@@ -152,6 +152,14 @@ class Order extends Model
     }
 
     /**
+     * Get digital invitations created from this order.
+     */
+    public function digitalInvitations(): HasMany
+    {
+        return $this->hasMany(DigitalInvitation::class);
+    }
+
+    /**
      * Get all cancellation requests for this order.
      */
     public function cancellationRequests(): HasMany

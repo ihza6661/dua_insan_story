@@ -203,4 +203,18 @@ Route::prefix('v1/admin')
         Route::put('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'update'])->name('promo-codes.update');
         Route::delete('/promo-codes/{promoCode}', [Admin\PromoCodeController::class, 'destroy'])->name('promo-codes.destroy');
         Route::post('/promo-codes/{promoCode}/toggle-status', [Admin\PromoCodeController::class, 'toggleStatus'])->name('promo-codes.toggle-status');
+
+        // Invitation Template Routes (Admin)
+        Route::get('/invitation-templates', [Admin\InvitationTemplateController::class, 'index'])->name('invitation-templates.index');
+        Route::post('/invitation-templates', [Admin\InvitationTemplateController::class, 'store'])->name('invitation-templates.store');
+        Route::get('/invitation-templates/{id}', [Admin\InvitationTemplateController::class, 'show'])->name('invitation-templates.show');
+        Route::put('/invitation-templates/{id}', [Admin\InvitationTemplateController::class, 'update'])->name('invitation-templates.update');
+        Route::delete('/invitation-templates/{id}', [Admin\InvitationTemplateController::class, 'destroy'])->name('invitation-templates.destroy');
+        Route::post('/invitation-templates/{id}/toggle-active', [Admin\InvitationTemplateController::class, 'toggleActive'])->name('invitation-templates.toggle-active');
+
+        // Digital Invitation Routes (Admin)
+        Route::get('/digital-invitations', [Admin\DigitalInvitationController::class, 'index'])->name('digital-invitations.index');
+        Route::get('/digital-invitations/statistics', [Admin\DigitalInvitationController::class, 'statistics'])->name('digital-invitations.statistics');
+        Route::get('/digital-invitations/{id}', [Admin\DigitalInvitationController::class, 'show'])->name('digital-invitations.show');
+        Route::delete('/digital-invitations/{id}', [Admin\DigitalInvitationController::class, 'destroy'])->name('digital-invitations.destroy');
     });
