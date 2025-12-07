@@ -10,18 +10,21 @@ class ProductCategorySeeder extends Seeder
 {
     public function run(): void
     {
+        // Delete old categories if they exist
+        ProductCategory::whereIn('slug', ['undangan-pernikahan', 'buku-tamu'])->delete();
+
         ProductCategory::updateOrCreate([
-            'slug' => Str::slug('Undangan Pernikahan'),
+            'slug' => Str::slug('Undangan Cetak'),
         ], [
-            'name' => 'Undangan Pernikahan',
-            'image' => 'category-images/wedding.jpg',
+            'name' => 'Undangan Cetak',
+            'image' => 'category-images/wedding-print.jpg',
         ]);
 
         ProductCategory::updateOrCreate([
-            'slug' => Str::slug('Buku Tamu'),
+            'slug' => Str::slug('Undangan Digital'),
         ], [
-            'name' => 'Buku Tamu',
-            'image' => 'category-images/guestbook.jpg',
+            'name' => 'Undangan Digital',
+            'image' => 'category-images/wedding-digital.jpg',
         ]);
     }
 }
