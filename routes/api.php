@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\Customer;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\WebhookController;
+use App\Http\Controllers\Api\V1\PublicInvitationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,10 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('products', Customer\ProductController::class)->only(['index', 'show']);
         Route::apiResource('product-categories', Customer\ProductCategoryController::class)->only(['index', 'show']);
         Route::apiResource('gallery-items', Customer\GalleryItemController::class)->only(['index', 'show']);
+
+        // Public routes for invitation templates
+        Route::get('/invitation-templates', [Customer\InvitationTemplateController::class, 'index']);
+        Route::get('/invitation-templates/{slug}', [Customer\InvitationTemplateController::class, 'show']);
 
         // Public review routes
         Route::get('/products/{productId}/reviews', [Customer\ReviewController::class, 'index'])->middleware('throttle:30,1');
@@ -109,6 +114,15 @@ Route::prefix('v1')->group(function () {
         Route::post('/notifications/{id}/mark-as-read', [Customer\NotificationController::class, 'markAsRead']);
         Route::post('/notifications/mark-all-read', [Customer\NotificationController::class, 'markAllAsRead']);
 
+        // Digital Invitation Routes (Customer - authenticated)
+        Route::get('/digital-invitations', [Customer\DigitalInvitationController::class, 'index']);
+        Route::get('/digital-invitations/{id}', [Customer\DigitalInvitationController::class, 'show']);
+        Route::put('/digital-invitations/{id}/customize', [Customer\DigitalInvitationController::class, 'updateCustomization']);
+        Route::post('/digital-invitations/{id}/photos', [Customer\DigitalInvitationController::class, 'uploadPhoto']);
+        Route::delete('/digital-invitations/{id}/photos/{photoIndex}', [Customer\DigitalInvitationController::class, 'deletePhoto']);
+        Route::post('/digital-invitations/{id}/activate', [Customer\DigitalInvitationController::class, 'activate']);
+        Route::post('/digital-invitations/{id}/deactivate', [Customer\DigitalInvitationController::class, 'deactivate']);
+
         // Recommendation Routes (Customer - authenticated)
         Route::get('/recommendations/personalized', [Customer\RecommendationController::class, 'personalized']);
         Route::get('/recommendations/trending', [Customer\RecommendationController::class, 'trending']);
@@ -124,6 +138,9 @@ Route::prefix('v1')->group(function () {
     // Public recommendation routes
     Route::get('/recommendations/popular', [Customer\RecommendationController::class, 'popular']);
     Route::get('/recommendations/similar/{productId}', [Customer\RecommendationController::class, 'similar']);
+
+    // Public invitation viewing
+    Route::get('/invitations/{slug}', [PublicInvitationController::class, 'show']);
 });
 
 // --- Endpoint untuk Administrator (Admin) ---
