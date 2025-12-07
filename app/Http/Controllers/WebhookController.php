@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\DigitalInvitationService;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,9 +13,14 @@ class WebhookController extends Controller
 {
     protected $midtransService;
 
-    public function __construct(MidtransService $midtransService)
-    {
+    protected $digitalInvitationService;
+
+    public function __construct(
+        MidtransService $midtransService,
+        DigitalInvitationService $digitalInvitationService
+    ) {
         $this->midtransService = $midtransService;
+        $this->digitalInvitationService = $digitalInvitationService;
     }
 
     public function midtrans(Request $request)
@@ -77,6 +83,16 @@ class WebhookController extends Controller
         } elseif ($payment->payment_type == 'full' || $payment->payment_type == 'final') {
             $order->order_status = 'Paid';
             $order->save();
+            
+            // Auto-create digital invitation if order contains digital products
+            try {
+                $this->digitalInvitationService->createFromOrder($order);
+            } catch (\Exception $e) {
+                Log::error('Failed to create digital invitation: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                ]);
+            }
+            
             // Optionally, you can move it to 'Processing' immediately
             // $order->order_status = 'Processing';
             // $order->save();

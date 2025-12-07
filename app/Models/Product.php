@@ -29,6 +29,8 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'product_type',
+        'template_id',
         'name',
         'slug',
         'description',
@@ -112,6 +114,14 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    /**
+     * Get the invitation template for digital products.
+     */
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(InvitationTemplate::class, 'template_id');
     }
 
     /**
