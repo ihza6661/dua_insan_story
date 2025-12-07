@@ -40,7 +40,7 @@ class InvitationTemplateController extends Controller
                     'description' => $template->description,
                     'thumbnail_image' => $template->thumbnail_image,
                     'thumbnail_url' => $template->thumbnail_image
-                        ? Storage::url($template->thumbnail_image)
+                        ? url(Storage::url($template->thumbnail_image))
                         : null,
                     'price' => $template->price,
                     'template_component' => $template->template_component,
@@ -102,7 +102,7 @@ class InvitationTemplateController extends Controller
                 'description' => $template->description,
                 'thumbnail_image' => $template->thumbnail_image,
                 'thumbnail_url' => $template->thumbnail_image
-                    ? Storage::url($template->thumbnail_image)
+                    ? url(Storage::url($template->thumbnail_image))
                     : null,
                 'price' => $template->price,
                 'template_component' => $template->template_component,
@@ -128,7 +128,7 @@ class InvitationTemplateController extends Controller
                 'description' => $template->description,
                 'thumbnail_image' => $template->thumbnail_image,
                 'thumbnail_url' => $template->thumbnail_image
-                    ? Storage::url($template->thumbnail_image)
+                    ? url(Storage::url($template->thumbnail_image))
                     : null,
                 'price' => $template->price,
                 'template_component' => $template->template_component,
@@ -187,7 +187,7 @@ class InvitationTemplateController extends Controller
                 'description' => $template->description,
                 'thumbnail_image' => $template->thumbnail_image,
                 'thumbnail_url' => $template->thumbnail_image
-                    ? Storage::url($template->thumbnail_image)
+                    ? url(Storage::url($template->thumbnail_image))
                     : null,
                 'price' => $template->price,
                 'template_component' => $template->template_component,
