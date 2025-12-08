@@ -32,6 +32,10 @@ class InvitationTemplate extends Model
         'template_component',
         'is_active',
         'usage_count',
+        'has_custom_fields',
+        'color_themes',
+        'preview_data',
+        'export_settings',
     ];
 
     protected function casts(): array
@@ -40,6 +44,10 @@ class InvitationTemplate extends Model
             'price' => 'float',
             'is_active' => 'boolean',
             'usage_count' => 'integer',
+            'has_custom_fields' => 'boolean',
+            'color_themes' => 'array',
+            'preview_data' => 'array',
+            'export_settings' => 'array',
         ];
     }
 
@@ -59,6 +67,14 @@ class InvitationTemplate extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(DigitalInvitation::class, 'template_id');
+    }
+
+    /**
+     * Get all custom fields for this template.
+     */
+    public function fields(): HasMany
+    {
+        return $this->hasMany(TemplateField::class, 'template_id');
     }
 
     // ========== HELPER METHODS ==========

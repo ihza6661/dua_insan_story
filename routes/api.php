@@ -213,6 +213,16 @@ Route::prefix('v1/admin')
         Route::delete('/invitation-templates/{id}', [Admin\InvitationTemplateController::class, 'destroy'])->name('invitation-templates.destroy');
         Route::post('/invitation-templates/{id}/toggle-active', [Admin\InvitationTemplateController::class, 'toggleActive'])->name('invitation-templates.toggle-active');
 
+        // Template Fields Routes (Admin)
+        Route::get('/invitation-templates/{templateId}/fields', [Admin\TemplateFieldController::class, 'index'])->name('template-fields.index');
+        Route::post('/invitation-templates/{templateId}/fields', [Admin\TemplateFieldController::class, 'store'])->name('template-fields.store');
+        Route::get('/invitation-templates/{templateId}/fields/{fieldId}', [Admin\TemplateFieldController::class, 'show'])->name('template-fields.show');
+        Route::put('/invitation-templates/{templateId}/fields/{fieldId}', [Admin\TemplateFieldController::class, 'update'])->name('template-fields.update');
+        Route::delete('/invitation-templates/{templateId}/fields/{fieldId}', [Admin\TemplateFieldController::class, 'destroy'])->name('template-fields.destroy');
+        Route::post('/invitation-templates/{templateId}/fields/reorder', [Admin\TemplateFieldController::class, 'reorder'])->name('template-fields.reorder');
+        Route::post('/invitation-templates/{templateId}/fields/{fieldId}/toggle-active', [Admin\TemplateFieldController::class, 'toggleActive'])->name('template-fields.toggle-active');
+        Route::post('/invitation-templates/{templateId}/fields/{fieldId}/duplicate', [Admin\TemplateFieldController::class, 'duplicate'])->name('template-fields.duplicate');
+
         // Digital Invitation Routes (Admin)
         Route::get('/digital-invitations', [Admin\DigitalInvitationController::class, 'index'])->name('digital-invitations.index');
         Route::get('/digital-invitations/statistics', [Admin\DigitalInvitationController::class, 'statistics'])->name('digital-invitations.statistics');

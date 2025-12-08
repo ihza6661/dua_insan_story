@@ -36,6 +36,8 @@ class DigitalInvitationData extends Model
         'venue_maps_url',
         'opening_message',
         'photo_paths',
+        'customization_json',
+        'color_scheme',
     ];
 
     protected function casts(): array
@@ -43,6 +45,7 @@ class DigitalInvitationData extends Model
         return [
             'event_date' => 'date',
             'photo_paths' => 'array',
+            'customization_json' => 'array',
         ];
     }
 
