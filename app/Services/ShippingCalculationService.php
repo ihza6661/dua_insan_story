@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Cart;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -41,6 +40,21 @@ class ShippingCalculationService
             throw new \Exception('Keranjang belanja Anda kosong.');
         }
 
+        // Check if all items are digital products
+        $allDigital = $cart->items->every(function (CartItem $item) {
+            return $item->product->isDigital();
+        });
+
+        // If all products are digital, return zero shipping cost
+        if ($allDigital) {
+            return [
+                'message' => 'Produk digital tidak memerlukan pengiriman',
+                'total_weight' => 0,
+                'results' => [],
+                'is_digital_only' => true,
+            ];
+        }
+
         $totalWeight = $this->calculateTotalWeight($cart->items);
 
         $originCityId = config('rajaongkir.origin_city_id');
@@ -63,16 +77,22 @@ class ShippingCalculationService
         }
 
         $response['total_weight'] = $totalWeight;
+        $response['is_digital_only'] = false;
 
         return $response;
     }
 
     /**
-     * Calculate total weight from cart items.
+     * Calculate total weight from cart items (excluding digital products).
      */
     public function calculateTotalWeight(iterable $cartItems): int
     {
         return (int) collect($cartItems)->sum(function (CartItem $item) {
+            // Skip digital products - they have no weight
+            if ($item->product->isDigital()) {
+                return 0;
+            }
+
             $variantWeight = $item->variant?->weight;
             $productWeight = (int) ($item->product->weight ?? 0);
             $baseWeight = $variantWeight !== null ? (int) $variantWeight : $productWeight;

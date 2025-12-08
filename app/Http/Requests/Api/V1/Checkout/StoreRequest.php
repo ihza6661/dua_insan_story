@@ -13,8 +13,10 @@ class StoreRequest extends FormRequest
 
     public function rules(): array
     {
+        $isDigitalOnly = $this->input('is_digital_only', false);
+
         return [
-            'shipping_address' => ['required', 'string', 'max:1000'],
+            'shipping_address' => [$isDigitalOnly ? 'nullable' : 'required', 'string', 'max:1000'],
 
             'bride_full_name' => ['required', 'string', 'max:255'],
             'groom_full_name' => ['required', 'string', 'max:255'],
@@ -33,13 +35,14 @@ class StoreRequest extends FormRequest
             'gmaps_link' => ['nullable', 'url', 'regex:/^https?:\/\/(www\.)?google\.com\/maps/', 'max:1000'],
             'prewedding_photo' => ['nullable', 'mimes:jpeg,png,bmp,gif,svg,webp', 'max:5120'],
 
-            'postal_code' => ['required', 'string', 'digits:5'],
-            'shipping_method' => ['required', 'string', 'in:rajaongkir,pickup,gosend'],
+            'postal_code' => [$isDigitalOnly ? 'nullable' : 'required', 'string', 'digits:5'],
+            'shipping_method' => [$isDigitalOnly ? 'nullable' : 'required', 'string', 'in:rajaongkir,pickup,gosend,none'],
             'shipping_cost' => ['required', 'numeric', 'min:0'],
             'shipping_service' => ['nullable', 'string', 'max:255', 'required_if:shipping_method,rajaongkir'],
             'courier' => ['nullable', 'string', 'max:255', 'required_if:shipping_method,rajaongkir'],
             'payment_option' => ['required', 'string', 'in:full,dp'],
             'promo_code' => ['nullable', 'string', 'max:50', 'exists:promo_codes,code'],
+            'is_digital_only' => ['boolean'],
         ];
     }
 

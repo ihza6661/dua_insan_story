@@ -277,4 +277,22 @@ class Product extends Model
 
         return $breakdown;
     }
+
+    // ========== PRODUCT TYPE HELPER METHODS ==========
+
+    /**
+     * Check if this product is a digital product.
+     */
+    public function isDigital(): bool
+    {
+        return $this->product_type === 'digital';
+    }
+
+    /**
+     * Check if this product is a physical product.
+     */
+    public function isPhysical(): bool
+    {
+        return $this->product_type === 'physical';
+    }
 }

@@ -70,15 +70,20 @@ class CheckoutService
                 }
             }
 
+            // Check if all products are digital
+            $allDigital = $cart->items->every(function ($item) {
+                return $item->product->isDigital();
+            });
+
             // Create the order with promo code
             $order = $this->orderCreationService->createOrderFromCart(
                 customerId: $user->id,
                 cart: $cart,
-                shippingCost: $checkoutData->shippingCost,
-                shippingAddress: $checkoutData->shippingAddress,
-                shippingMethod: $checkoutData->shippingMethod,
-                shippingService: $checkoutData->shippingService,
-                courier: $checkoutData->courier,
+                shippingCost: $allDigital ? 0 : $checkoutData->shippingCost,
+                shippingAddress: $allDigital ? 'Digital Product - No Shipping Required' : $checkoutData->shippingAddress,
+                shippingMethod: $allDigital ? 'none' : $checkoutData->shippingMethod,
+                shippingService: $allDigital ? null : $checkoutData->shippingService,
+                courier: $allDigital ? null : $checkoutData->courier,
                 promoCodeId: $promoCodeId,
                 discountAmount: $discountAmount
             );
