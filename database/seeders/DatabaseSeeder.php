@@ -15,12 +15,18 @@ class DatabaseSeeder extends Seeder
             AddOnSeeder::class,
             AttributeSeeder::class,
 
+            // Digital invitation templates (must come before products)
+            InvitationTemplateSeeder::class,
+
             // Seeders generated from current database
             ProductsTableSeeder::class,
             ProductVariantsTableSeeder::class,
             ProductAddOnsTableSeeder::class,
             ProductVariantOptionsTableSeeder::class,
             ProductImageSeeder::class,
+
+            // Digital products (creates products from templates)
+            DigitalProductSeeder::class,
 
             // Order and Review seeders
             OrderSeeder::class,

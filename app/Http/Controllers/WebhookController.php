@@ -84,18 +84,25 @@ class WebhookController extends Controller
             $order->order_status = 'Paid';
             $order->save();
             
-            // Auto-create digital invitation if order contains digital products
+            // Auto-create and activate digital invitation if order contains digital products
             try {
-                $this->digitalInvitationService->createFromOrder($order);
+                $invitation = $this->digitalInvitationService->createFromOrder($order);
+                
+                // Auto-activate the invitation after creation
+                if ($invitation) {
+                    $this->digitalInvitationService->activate($invitation->id);
+                    Log::info('Digital invitation created and activated', [
+                        'order_id' => $order->id,
+                        'invitation_id' => $invitation->id,
+                        'slug' => $invitation->slug,
+                    ]);
+                }
             } catch (\Exception $e) {
-                Log::error('Failed to create digital invitation: '.$e->getMessage(), [
+                Log::error('Failed to create/activate digital invitation: '.$e->getMessage(), [
                     'order_id' => $order->id,
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
-            
-            // Optionally, you can move it to 'Processing' immediately
-            // $order->order_status = 'Processing';
-            // $order->save();
         }
     }
 

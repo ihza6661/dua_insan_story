@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\DigitalInvitation;
+use App\Models\Order;
 use App\Services\DigitalInvitationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,6 +57,75 @@ class DigitalInvitationController extends Controller
                 ];
             }),
         ]);
+    }
+
+    /**
+     * Create digital invitation from a paid order containing digital products.
+     */
+    public function createFromOrder(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required|integer|exists:orders,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Verify order belongs to authenticated user and is paid
+        $order = Order::where('id', $request->order_id)
+            ->where('customer_id', $request->user()->id)
+            ->where('order_status', 'Paid')
+            ->first();
+
+        if (! $order) {
+            return response()->json([
+                'message' => 'Order not found or not paid yet',
+            ], 404);
+        }
+
+        // Check if order has digital products
+        $hasDigitalProduct = $order->items()
+            ->whereHas('product', fn ($q) => $q->where('product_type', 'digital'))
+            ->exists();
+
+        if (! $hasDigitalProduct) {
+            return response()->json([
+                'message' => 'Order does not contain digital products',
+            ], 400);
+        }
+
+        // Check if invitation already exists for this order
+        if (DigitalInvitation::where('order_id', $order->id)->exists()) {
+            return response()->json([
+                'message' => 'Invitation already created for this order',
+            ], 409);
+        }
+
+        // Create invitation
+        $invitation = $this->invitationService->createFromOrder($order);
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Failed to create invitation',
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Invitation created successfully',
+            'data' => [
+                'id' => $invitation->id,
+                'slug' => $invitation->slug,
+                'status' => $invitation->status,
+                'template' => [
+                    'id' => $invitation->template->id,
+                    'name' => $invitation->template->name,
+                ],
+            ],
+        ], 201);
     }
 
     /**

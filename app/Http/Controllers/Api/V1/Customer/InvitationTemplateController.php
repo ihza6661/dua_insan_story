@@ -13,12 +13,14 @@ class InvitationTemplateController extends Controller
      */
     public function index(): JsonResponse
     {
-        $templates = InvitationTemplate::where('is_active', true)
+        $templates = InvitationTemplate::with('products')
+            ->where('is_active', true)
             ->orderBy('name')
             ->get()
             ->map(function ($template) {
                 return [
                     'id' => $template->id,
+                    'product_id' => $template->products()->where('product_type', 'digital')->first()?->id,
                     'slug' => $template->slug,
                     'name' => $template->name,
                     'description' => $template->description,
@@ -40,7 +42,8 @@ class InvitationTemplateController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $template = InvitationTemplate::where('slug', $slug)
+        $template = InvitationTemplate::with('products')
+            ->where('slug', $slug)
             ->where('is_active', true)
             ->first();
 
@@ -54,6 +57,7 @@ class InvitationTemplateController extends Controller
             'message' => 'Template retrieved successfully',
             'data' => [
                 'id' => $template->id,
+                'product_id' => $template->products()->where('product_type', 'digital')->first()?->id,
                 'slug' => $template->slug,
                 'name' => $template->name,
                 'description' => $template->description,

@@ -17,14 +17,14 @@ class ProductCategorySeeder extends Seeder
             'slug' => Str::slug('Undangan Cetak'),
         ], [
             'name' => 'Undangan Cetak',
-            'image' => 'category-images/wedding-print.jpg',
+            'image' => 'category-images/undangan-cetak.jpg',
         ]);
 
         ProductCategory::updateOrCreate([
             'slug' => Str::slug('Undangan Digital'),
         ], [
             'name' => 'Undangan Digital',
-            'image' => 'category-images/wedding-digital.jpg',
+            'image' => 'category-images/undangan-digital.jpg',
         ]);
     }
 }

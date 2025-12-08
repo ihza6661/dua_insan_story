@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Repositories\Contracts\CartRepositoryInterface;
 use App\Services\CheckoutService;
+use App\Services\DigitalInvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -18,10 +19,16 @@ class WebhookController extends Controller
 
     protected CartRepositoryInterface $cartRepository;
 
-    public function __construct(CheckoutService $checkoutService, CartRepositoryInterface $cartRepository)
-    {
+    protected DigitalInvitationService $digitalInvitationService;
+
+    public function __construct(
+        CheckoutService $checkoutService,
+        CartRepositoryInterface $cartRepository,
+        DigitalInvitationService $digitalInvitationService
+    ) {
         $this->checkoutService = $checkoutService;
         $this->cartRepository = $cartRepository;
+        $this->digitalInvitationService = $digitalInvitationService;
     }
 
     private function resolvePaymentByOrderId(string $orderId): ?Payment
@@ -179,6 +186,28 @@ class WebhookController extends Controller
             // Send payment confirmation email
             $order->loadMissing('customer');
             Mail::to($order->customer->email)->send(new PaymentConfirmed($order, $payment));
+        }
+
+        // Auto-create and activate digital invitation for full/final payments
+        if (in_array($payment->payment_type, ['full', 'final'])) {
+            try {
+                $invitation = $this->digitalInvitationService->createFromOrder($order);
+                
+                // Auto-activate the invitation after creation
+                if ($invitation) {
+                    $this->digitalInvitationService->activate($invitation->id);
+                    Log::info('Digital invitation created and activated', [
+                        'order_id' => $order->id,
+                        'invitation_id' => $invitation->id,
+                        'slug' => $invitation->slug,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to create/activate digital invitation: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
         }
     }
 

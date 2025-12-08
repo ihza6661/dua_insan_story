@@ -115,6 +115,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/notifications/mark-all-read', [Customer\NotificationController::class, 'markAllAsRead']);
 
         // Digital Invitation Routes (Customer - authenticated)
+        Route::post('/digital-invitations/create-from-order', [Customer\DigitalInvitationController::class, 'createFromOrder']);
         Route::get('/digital-invitations', [Customer\DigitalInvitationController::class, 'index']);
         Route::get('/digital-invitations/{id}', [Customer\DigitalInvitationController::class, 'show']);
         Route::put('/digital-invitations/{id}/customize', [Customer\DigitalInvitationController::class, 'updateCustomization']);

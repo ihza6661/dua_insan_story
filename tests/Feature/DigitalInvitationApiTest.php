@@ -55,13 +55,12 @@ class DigitalInvitationApiTest extends TestCase
             'category_id' => $category->id,
             'product_type' => 'digital',
             'template_id' => $this->template->id,
-            'price' => 150000,
         ]);
 
         // Create order
         $this->order = Order::factory()->create([
             'customer_id' => $this->user->id,
-            'status' => 'Paid',
+            'order_status' => 'Paid',
             'total_amount' => 150000,
         ]);
 

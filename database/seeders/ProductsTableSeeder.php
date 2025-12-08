@@ -4,28 +4,38 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use App\Models\ProductCategory;
 
 class ProductsTableSeeder extends Seeder
 {
     /**
-     * Auto generated seed file
+     * Seed physical products (printed invitations).
+     * Digital products are seeded separately via DigitalProductSeeder.
      *
      * @return void
      */
     public function run()
     {
-
         Schema::disableForeignKeyConstraints();
-        \DB::table('products')->truncate();
+        
+        // Only delete physical products (preserve digital products if they exist)
+        DB::table('products')->where('product_type', 'physical')->orWhereNull('product_type')->delete();
 
-        \DB::table('products')->insert([
+        // Get category ID dynamically to avoid hardcoding
+        $printedCategoryId = ProductCategory::where('slug', 'undangan-cetak')->first()->id;
+
+        DB::table('products')->insert([
             0 => [
                 'id' => 1,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 1',
                 'slug' => 'undangan-cetak-1',
                 'description' => 'Undangan cetak dengan desain elegan untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-16 13:29:32',
@@ -33,11 +43,14 @@ class ProductsTableSeeder extends Seeder
             ],
             1 => [
                 'id' => 2,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 2',
                 'slug' => 'undangan-cetak-2',
                 'description' => 'Undangan cetak dengan desain klasik untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -45,11 +58,14 @@ class ProductsTableSeeder extends Seeder
             ],
             2 => [
                 'id' => 3,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 3',
                 'slug' => 'undangan-cetak-3',
                 'description' => 'Undangan cetak dengan desain modern untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -57,11 +73,14 @@ class ProductsTableSeeder extends Seeder
             ],
             3 => [
                 'id' => 4,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 4',
                 'slug' => 'undangan-cetak-4',
                 'description' => 'Undangan cetak dengan desain minimalis untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -69,11 +88,14 @@ class ProductsTableSeeder extends Seeder
             ],
             4 => [
                 'id' => 5,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 5',
                 'slug' => 'undangan-cetak-5',
                 'description' => 'Undangan cetak dengan desain premium untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -81,11 +103,14 @@ class ProductsTableSeeder extends Seeder
             ],
             5 => [
                 'id' => 6,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 6',
                 'slug' => 'undangan-cetak-6',
                 'description' => 'Undangan cetak dengan desain tradisional untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -93,11 +118,14 @@ class ProductsTableSeeder extends Seeder
             ],
             6 => [
                 'id' => 7,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 7',
                 'slug' => 'undangan-cetak-7',
                 'description' => 'Undangan cetak dengan desain floral untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -105,11 +133,14 @@ class ProductsTableSeeder extends Seeder
             ],
             7 => [
                 'id' => 8,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 8',
                 'slug' => 'undangan-cetak-8',
                 'description' => 'Undangan cetak dengan desain mewah untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
@@ -117,108 +148,15 @@ class ProductsTableSeeder extends Seeder
             ],
             8 => [
                 'id' => 9,
-                'category_id' => 3,
+                'category_id' => $printedCategoryId,
+                'product_type' => 'physical',
+                'template_id' => null,
                 'name' => 'Undangan Cetak 9',
                 'slug' => 'undangan-cetak-9',
                 'description' => 'Undangan cetak dengan desain rustic untuk acara pernikahan',
                 'base_price' => 2500,
+                'weight' => 50,
                 'min_order_quantity' => 100,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            9 => [
-                'id' => 10,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 1',
-                'slug' => 'undangan-digital-1',
-                'description' => 'Undangan digital interaktif dengan desain elegan',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            10 => [
-                'id' => 11,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 2',
-                'slug' => 'undangan-digital-2',
-                'description' => 'Undangan digital interaktif dengan desain modern',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            11 => [
-                'id' => 12,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 3',
-                'slug' => 'undangan-digital-3',
-                'description' => 'Undangan digital interaktif dengan desain minimalis',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            12 => [
-                'id' => 13,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 4',
-                'slug' => 'undangan-digital-4',
-                'description' => 'Undangan digital interaktif dengan desain klasik',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            13 => [
-                'id' => 14,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 5',
-                'slug' => 'undangan-digital-5',
-                'description' => 'Undangan digital interaktif dengan desain floral',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            14 => [
-                'id' => 15,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 6',
-                'slug' => 'undangan-digital-6',
-                'description' => 'Undangan digital interaktif dengan desain premium',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            15 => [
-                'id' => 16,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 7',
-                'slug' => 'undangan-digital-7',
-                'description' => 'Undangan digital interaktif dengan desain tradisional',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
-                'is_active' => 1,
-                'created_at' => '2025-11-18 14:00:00',
-                'updated_at' => '2025-11-18 14:00:00',
-            ],
-            16 => [
-                'id' => 17,
-                'category_id' => 4,
-                'name' => 'Undangan Digital 8',
-                'slug' => 'undangan-digital-8',
-                'description' => 'Undangan digital interaktif dengan desain romantic',
-                'base_price' => 150000,
-                'min_order_quantity' => 1,
                 'is_active' => 1,
                 'created_at' => '2025-11-18 14:00:00',
                 'updated_at' => '2025-11-18 14:00:00',
