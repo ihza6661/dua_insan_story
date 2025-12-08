@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
 
             // Digital invitation templates (must come before products)
             InvitationTemplateSeeder::class,
+            TemplateFieldSeeder::class,
 
             // Seeders generated from current database
             ProductsTableSeeder::class,
