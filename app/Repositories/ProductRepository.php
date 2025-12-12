@@ -80,7 +80,7 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function getPaginatedActiveProducts(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = $this->model->with(['category', 'variants.images'])
+        $query = $this->model->with(['category', 'variants.images', 'template'])
             ->active()
             ->when($filters['search'] ?? null, function ($query, $searchTerm) {
                 $query->search($searchTerm);

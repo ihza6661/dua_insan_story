@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class ProductImageSeeder extends Seeder
@@ -17,22 +18,38 @@ class ProductImageSeeder extends Seeder
     public function run()
     {
         Schema::disableForeignKeyConstraints();
-        \DB::table('product_images')->truncate();
+        DB::table('product_images')->truncate();
         $products = Product::with('variants.images')->get();
 
         foreach ($products as $product) {
-            if ($product->variants->flatMap->images->isEmpty()) {
-                $productImages = $this->getProductImagesForProduct($product->name);
+            // Skip digital products (they have their own images)
+            if ($product->product_type === 'digital') {
+                continue;
+            }
 
-                foreach ($productImages as $image) {
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'product_variant_id' => $product->variants->first()->id,
-                        'image' => 'product-images/'.$image,
-                        'alt_text' => $product->name,
-                        'is_featured' => true,
-                    ]);
-                }
+            // Check if product already has images
+            if ($product->variants->flatMap->images->isNotEmpty()) {
+                continue;
+            }
+
+            // Get product variant (if exists)
+            $variantId = $product->variants->first()?->id;
+
+            $productImages = $this->getProductImagesForProduct($product->name);
+
+            if (empty($productImages)) {
+                // No images mapped for this product
+                continue;
+            }
+
+            foreach ($productImages as $image) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variantId, // Can be null
+                    'image' => 'product-images/'.$image,
+                    'alt_text' => $product->name,
+                    'is_featured' => true,
+                ]);
             }
         }
         Schema::enableForeignKeyConstraints();

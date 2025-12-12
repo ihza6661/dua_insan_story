@@ -69,4 +69,56 @@ class InvitationTemplateController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Get customization fields for a template.
+     * 
+     * Returns only active fields ordered by display_order for customers to fill.
+     */
+    public function getFields(int $templateId): JsonResponse
+    {
+        $template = InvitationTemplate::where('id', $templateId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $template) {
+            return response()->json([
+                'message' => 'Template not found',
+            ], 404);
+        }
+
+        // Get only active fields, ordered
+        $fields = $template->fields()
+            ->where('is_active', true)
+            ->orderBy('display_order')
+            ->get()
+            ->map(function ($field) {
+                return [
+                    'id' => $field->id,
+                    'field_key' => $field->field_key,
+                    'field_label' => $field->field_label,
+                    'field_type' => $field->field_type,
+                    'field_category' => $field->field_category,
+                    'placeholder' => $field->placeholder,
+                    'default_value' => $field->default_value,
+                    'validation_rules' => $field->validation_rules,
+                    'help_text' => $field->help_text,
+                    'display_order' => $field->display_order,
+                ];
+            });
+
+        // Group fields by category for easier rendering
+        $groupedFields = $fields->groupBy('field_category');
+
+        return response()->json([
+            'message' => 'Template fields retrieved successfully',
+            'data' => [
+                'template_id' => $template->id,
+                'template_name' => $template->name,
+                'has_custom_fields' => $template->has_custom_fields,
+                'fields' => $fields,
+                'grouped_fields' => $groupedFields,
+            ],
+        ]);
+    }
 }

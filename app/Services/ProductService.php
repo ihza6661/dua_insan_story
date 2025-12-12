@@ -131,10 +131,10 @@ class ProductService
     {
         // If identifier is numeric, treat as ID
         if (is_numeric($identifier)) {
-            return $this->productRepository->findActiveProduct((int) $identifier, ['category', 'variants.images']);
+            return $this->productRepository->findActiveProduct((int) $identifier, ['category', 'variants.images', 'template']);
         }
         
         // Otherwise treat as slug
-        return $this->productRepository->findActiveProductBySlug($identifier, ['category', 'variants.images']);
+        return $this->productRepository->findActiveProductBySlug($identifier, ['category', 'variants.images', 'template']);
     }
 }

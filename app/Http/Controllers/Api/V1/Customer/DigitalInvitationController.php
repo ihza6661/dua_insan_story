@@ -256,6 +256,7 @@ class DigitalInvitationController extends Controller
 
         $validator = Validator::make($request->all(), [
             'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB max
+            'photo_type' => 'nullable|string|in:bride,groom',
         ]);
 
         if ($validator->fails()) {
@@ -268,13 +269,15 @@ class DigitalInvitationController extends Controller
         try {
             $photoUrl = $this->invitationService->uploadPhoto(
                 $invitation->id,
-                $request->file('photo')
+                $request->file('photo'),
+                $request->input('photo_type')
             );
 
             return response()->json([
                 'message' => 'Photo uploaded successfully',
                 'data' => [
                     'photo_url' => $photoUrl,
+                    'photo_type' => $request->input('photo_type'),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -374,6 +377,179 @@ class DigitalInvitationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to deactivate invitation',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Update the invitation slug/URL.
+     */
+    public function updateSlug(Request $request, int $id): JsonResponse
+    {
+        $invitation = DigitalInvitation::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invitation not found',
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'slug' => 'required|string|min:3|max:100|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|unique:digital_invitations,slug,'.$invitation->id,
+        ], [
+            'slug.regex' => 'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung',
+            'slug.unique' => 'URL ini sudah digunakan, silakan pilih URL lain',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $oldSlug = $invitation->slug;
+            $newSlug = $request->input('slug');
+
+            $invitation->update(['slug' => $newSlug]);
+
+            return response()->json([
+                'message' => 'URL berhasil diperbarui',
+                'data' => [
+                    'slug' => $invitation->slug,
+                    'public_url' => $invitation->public_url,
+                    'old_slug' => $oldSlug,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal memperbarui URL',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Schedule activation of the invitation for a future date/time.
+     */
+    public function scheduleActivation(Request $request, int $id): JsonResponse
+    {
+        $invitation = DigitalInvitation::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invitation not found',
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'scheduled_at' => 'required|date|after:now',
+        ], [
+            'scheduled_at.after' => 'Scheduled date must be in the future',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $invitation = $this->invitationService->scheduleActivation(
+                $invitation->id,
+                $request->input('scheduled_at')
+            );
+
+            return response()->json([
+                'message' => 'Invitation scheduled for activation successfully',
+                'data' => [
+                    'scheduled_activation_at' => $invitation->scheduled_activation_at?->toISOString(),
+                    'status' => $invitation->status,
+                ],
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to schedule activation',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel scheduled activation.
+     */
+    public function cancelScheduledActivation(Request $request, int $id): JsonResponse
+    {
+        $invitation = DigitalInvitation::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invitation not found',
+            ], 404);
+        }
+
+        try {
+            $invitation = $this->invitationService->cancelScheduledActivation($invitation->id);
+
+            return response()->json([
+                'message' => 'Scheduled activation cancelled successfully',
+                'data' => [
+                    'status' => $invitation->status,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to cancel scheduled activation',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get preview data for invitation (works even if not active).
+     * Preview Before Activation feature.
+     */
+    public function preview(Request $request, int $id): JsonResponse
+    {
+        $invitation = DigitalInvitation::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invitation not found',
+            ], 404);
+        }
+
+        try {
+            $previewData = $this->invitationService->getPreviewData(
+                $invitation->id,
+                $request->user()->id
+            );
+
+            if (! $previewData) {
+                return response()->json([
+                    'message' => 'Preview data not available',
+                ], 404);
+            }
+
+            return response()->json($previewData);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to load preview',
                 'error' => $e->getMessage(),
             ], 500);
         }

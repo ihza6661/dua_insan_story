@@ -76,11 +76,12 @@ class DigitalInvitationController extends Controller
                     'status' => $invitation->status,
                     'activated_at' => $invitation->activated_at?->toISOString(),
                     'expires_at' => $invitation->expires_at?->toISOString(),
+                    'scheduled_activation_at' => $invitation->scheduled_activation_at?->toISOString(),
                     'view_count' => $invitation->view_count,
                     'last_viewed_at' => $invitation->last_viewed_at?->toISOString(),
                     'created_at' => $invitation->created_at->toISOString(),
                     'updated_at' => $invitation->updated_at->toISOString(),
-                    'public_url' => config('app.frontend_url').'/invitation/'.$invitation->slug,
+                    'public_url' => config('app.frontend_url').'/undangan/'.$invitation->slug,
                     'customization_data' => $invitation->data ? [
                         'template_name' => $invitation->data->template_name,
                         'couple_names' => $invitation->data->couple_names,
@@ -128,11 +129,12 @@ class DigitalInvitationController extends Controller
                 'status' => $invitation->status,
                 'activated_at' => $invitation->activated_at?->toISOString(),
                 'expires_at' => $invitation->expires_at?->toISOString(),
+                'scheduled_activation_at' => $invitation->scheduled_activation_at?->toISOString(),
                 'view_count' => $invitation->view_count,
                 'last_viewed_at' => $invitation->last_viewed_at?->toISOString(),
                 'created_at' => $invitation->created_at->toISOString(),
                 'updated_at' => $invitation->updated_at->toISOString(),
-                'public_url' => config('app.frontend_url').'/invitation/'.$invitation->slug,
+                'public_url' => config('app.frontend_url').'/undangan/'.$invitation->slug,
                 'customization_data' => $invitation->data ? [
                     'template_name' => $invitation->data->template_name,
                     'couple_names' => $invitation->data->couple_names,
@@ -163,6 +165,9 @@ class DigitalInvitationController extends Controller
         $activeInvitations = DigitalInvitation::where('status', DigitalInvitation::STATUS_ACTIVE)->count();
         $draftInvitations = DigitalInvitation::where('status', DigitalInvitation::STATUS_DRAFT)->count();
         $expiredInvitations = DigitalInvitation::where('status', DigitalInvitation::STATUS_EXPIRED)->count();
+        $scheduledInvitations = DigitalInvitation::whereNotNull('scheduled_activation_at')
+            ->where('status', DigitalInvitation::STATUS_DRAFT)
+            ->count();
         $totalViews = DigitalInvitation::sum('view_count');
 
         // Calculate revenue from orders that include invitation templates
@@ -180,10 +185,92 @@ class DigitalInvitationController extends Controller
                 'active_invitations' => $activeInvitations,
                 'draft_invitations' => $draftInvitations,
                 'expired_invitations' => $expiredInvitations,
+                'scheduled_invitations' => $scheduledInvitations,
                 'total_views' => $totalViews,
                 'total_revenue' => $totalRevenue,
                 'templates_count' => $templatesCount,
                 'active_templates' => $activeTemplates,
+            ],
+        ]);
+    }
+
+    /**
+     * Get all scheduled invitations (invitations with scheduled_activation_at set).
+     */
+    public function scheduled(Request $request): JsonResponse
+    {
+        $query = DigitalInvitation::with(['user:id,full_name,email', 'template:id,name', 'data'])
+            ->whereNotNull('scheduled_activation_at')
+            ->where('status', DigitalInvitation::STATUS_DRAFT)
+            ->orderBy('scheduled_activation_at', 'asc');
+
+        // Search by customer name or slug
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('slug', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('full_name', 'like', '%'.$search.'%')
+                            ->orWhere('email', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        // Filter by upcoming/overdue
+        if ($request->filled('timeframe')) {
+            if ($request->timeframe === 'upcoming') {
+                $query->where('scheduled_activation_at', '>', now());
+            } elseif ($request->timeframe === 'overdue') {
+                $query->where('scheduled_activation_at', '<=', now());
+            }
+        }
+
+        $perPage = $request->input('per_page', 20);
+        $invitations = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $invitations->map(function ($invitation) {
+                $scheduledAt = $invitation->scheduled_activation_at;
+                $now = now();
+                $isOverdue = $scheduledAt->isPast();
+                $timeUntilActivation = $isOverdue
+                    ? 'Overdue by '.$scheduledAt->diffForHumans($now, true)
+                    : 'In '.$scheduledAt->diffForHumans($now, true);
+
+                return [
+                    'id' => $invitation->id,
+                    'user_id' => $invitation->user_id,
+                    'user' => [
+                        'id' => $invitation->user->id,
+                        'full_name' => $invitation->user->full_name,
+                        'email' => $invitation->user->email,
+                    ],
+                    'template_id' => $invitation->template_id,
+                    'template' => [
+                        'id' => $invitation->template->id,
+                        'name' => $invitation->template->name,
+                    ],
+                    'slug' => $invitation->slug,
+                    'status' => $invitation->status,
+                    'scheduled_activation_at' => $scheduledAt->toISOString(),
+                    'scheduled_activation_relative' => $timeUntilActivation,
+                    'is_overdue' => $isOverdue,
+                    'expires_at' => $invitation->expires_at?->toISOString(),
+                    'created_at' => $invitation->created_at->toISOString(),
+                    'public_url' => config('app.frontend_url').'/undangan/'.$invitation->slug,
+                    'customization_data' => $invitation->data ? [
+                        'bride_name' => $invitation->data->bride_name,
+                        'groom_name' => $invitation->data->groom_name,
+                    ] : null,
+                ];
+            }),
+            'meta' => [
+                'current_page' => $invitations->currentPage(),
+                'from' => $invitations->firstItem(),
+                'last_page' => $invitations->lastPage(),
+                'per_page' => $invitations->perPage(),
+                'to' => $invitations->lastItem(),
+                'total' => $invitations->total(),
             ],
         ]);
     }

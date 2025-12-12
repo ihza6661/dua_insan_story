@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string $slug
  * @property string $status
  * @property \Carbon\Carbon|null $activated_at
+ * @property \Carbon\Carbon|null $scheduled_activation_at
  * @property \Carbon\Carbon|null $expires_at
  * @property int $view_count
  * @property \Carbon\Carbon|null $last_viewed_at
@@ -37,6 +38,7 @@ class DigitalInvitation extends Model
         'slug',
         'status',
         'activated_at',
+        'scheduled_activation_at',
         'expires_at',
         'view_count',
         'last_viewed_at',
@@ -46,6 +48,7 @@ class DigitalInvitation extends Model
     {
         return [
             'activated_at' => 'datetime',
+            'scheduled_activation_at' => 'datetime',
             'expires_at' => 'datetime',
             'last_viewed_at' => 'datetime',
             'view_count' => 'integer',
@@ -112,6 +115,34 @@ class DigitalInvitation extends Model
      */
     public function getPublicUrlAttribute(): string
     {
-        return config('app.url') . '/invite/' . $this->slug;
+        return config('app.frontend_url') . '/undangan/' . $this->slug;
+    }
+
+    /**
+     * Check if invitation is expired.
+     * An invitation is considered expired if:
+     * - Status is 'expired', OR
+     * - Status is 'active' AND expires_at is in the past
+     * 
+     * Draft invitations are never considered expired.
+     */
+    public function getIsExpiredAttribute(): bool
+    {
+        // Draft invitations are never expired
+        if ($this->status === self::STATUS_DRAFT) {
+            return false;
+        }
+
+        // Explicitly expired status
+        if ($this->status === self::STATUS_EXPIRED) {
+            return true;
+        }
+
+        // Active but past expiration date
+        if ($this->status === self::STATUS_ACTIVE && $this->expires_at) {
+            return $this->expires_at->isPast();
+        }
+
+        return false;
     }
 }

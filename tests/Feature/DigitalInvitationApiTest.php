@@ -229,6 +229,7 @@ class DigitalInvitationApiTest extends TestCase
         $response = $this->actingAs($this->user, 'sanctum')
             ->postJson("/api/v1/digital-invitations/{$this->invitation->id}/photos", [
                 'photo' => $file,
+                'photo_type' => 'bride',
             ]);
 
         $response->assertStatus(200)
@@ -236,12 +237,12 @@ class DigitalInvitationApiTest extends TestCase
                 'message',
                 'data' => [
                     'photo_url',
+                    'photo_type',
                 ],
             ]);
 
-        // Verify file was stored
-        $photoUrl = $response->json('data.photo_url');
-        $this->assertTrue(Storage::disk('public')->exists($photoUrl));
+        // Verify file was stored in the correct directory
+        $this->assertTrue(Storage::disk('public')->allFiles("invitations/{$this->invitation->id}") !== []);
     }
 
     /** @test */

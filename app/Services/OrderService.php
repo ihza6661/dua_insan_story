@@ -31,6 +31,7 @@ class OrderService
         return $this->orderRepository->getOrdersByUser($user, [
             'items.product.variants.images',
             'items.product.variants',
+            'items.product.template',
             'items.variant.options',
             'items.review',
             'invitationDetail',
@@ -46,6 +47,7 @@ class OrderService
         return $this->orderRepository->findOrderByIdForUser($user, $orderId, [
             'items.product.variants.images',
             'items.product.variants',
+            'items.product.template',
             'items.variant.options',
             'items.review',
             'invitationDetail',

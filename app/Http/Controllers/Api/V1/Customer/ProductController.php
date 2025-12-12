@@ -36,7 +36,7 @@ class ProductController extends Controller
         // Support both ID and slug
         $product = $this->productService->findPubliclyVisibleProduct($identifier);
 
-        $product->load(['category', 'variants.options.attribute', 'variants.images', 'addOns']);
+        $product->load(['category', 'variants.options.attribute', 'variants.images', 'addOns', 'template']);
 
         return new ProductResource($product);
     }

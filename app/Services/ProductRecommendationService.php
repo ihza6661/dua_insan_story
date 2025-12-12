@@ -43,7 +43,7 @@ class ProductRecommendationService
         $recommendations = Product::query()
             ->whereIn('category_id', $purchasedCategories->pluck('id'))
             ->whereNotIn('id', $this->getUserPurchasedProductIds($userId))
-            ->with(['category', 'images'])
+            ->with(['category', 'images', 'template'])
             ->inRandomOrder()
             ->limit($limit)
             ->get();
@@ -104,7 +104,7 @@ class ProductRecommendationService
                 ->when(! empty($excludeIds), function ($query) use ($excludeIds) {
                     $query->whereNotIn('products.id', $excludeIds);
                 })
-                ->with(['category', 'images'])
+                ->with(['category', 'images', 'template'])
                 ->groupBy('products.id')
                 ->orderByDesc('order_count')
                 ->limit($limit)
@@ -129,7 +129,7 @@ class ProductRecommendationService
             return Product::query()
                 ->where('category_id', $product->category_id)
                 ->where('id', '!=', $productId)
-                ->with(['category', 'images'])
+                ->with(['category', 'images', 'template'])
                 ->inRandomOrder()
                 ->limit($limit)
                 ->get();
@@ -150,7 +150,7 @@ class ProductRecommendationService
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->where('orders.created_at', '>=', now()->subDays($daysBack))
                 ->where('orders.order_status', '!=', Order::STATUS_CANCELLED)
-                ->with(['category', 'images'])
+                ->with(['category', 'images', 'template'])
                 ->groupBy('products.id')
                 ->orderByDesc('recent_order_count')
                 ->limit($limit)
@@ -167,7 +167,7 @@ class ProductRecommendationService
 
         return Cache::remember($cacheKey, now()->addHours(12), function () use ($limit) {
             return Product::query()
-                ->with(['category', 'images'])
+                ->with(['category', 'images', 'template'])
                 ->orderByDesc('created_at')
                 ->limit($limit)
                 ->get();
@@ -187,7 +187,7 @@ class ProductRecommendationService
                 ->when($excludeProductId, function ($query) use ($excludeProductId) {
                     $query->where('id', '!=', $excludeProductId);
                 })
-                ->with(['category', 'images'])
+                ->with(['category', 'images', 'template'])
                 ->inRandomOrder()
                 ->limit($limit)
                 ->get();

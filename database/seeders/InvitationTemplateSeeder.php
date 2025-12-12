@@ -17,7 +17,7 @@ class InvitationTemplateSeeder extends Seeder
                 'name' => 'Sakeenah - Islamic Modern',
                 'slug' => 'sakeenah-islamic-modern',
                 'description' => 'Beautiful modern Islamic wedding invitation with elegant animations and soft romantic colors. Perfect for Indonesian Muslim weddings with a contemporary touch.',
-                'thumbnail_image' => '/media/templates/sakeenah-thumb.jpg',
+                'thumbnail_image' => 'templates/sakeenah-thumb.jpg', // Path relative to storage/app/public/
                 'price' => 150000.00,
                 'template_component' => 'SakenahTemplate',
                 'is_active' => true,
@@ -27,7 +27,7 @@ class InvitationTemplateSeeder extends Seeder
                 'name' => 'Classic Elegant - Traditional',
                 'slug' => 'classic-elegant-traditional',
                 'description' => 'Timeless classic wedding invitation with gold and white tones. Clean, minimalist design with floral accents perfect for traditional Indonesian weddings.',
-                'thumbnail_image' => '/media/templates/classic-elegant-thumb.jpg',
+                'thumbnail_image' => 'templates/classic-elegant-thumb.jpg', // Path relative to storage/app/public/
                 'price' => 150000.00,
                 'template_component' => 'ClassicElegantTemplate',
                 'is_active' => true,

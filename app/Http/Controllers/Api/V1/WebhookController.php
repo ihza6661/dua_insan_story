@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessDigitalInvitations;
 use App\Mail\PaymentConfirmed;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Repositories\Contracts\CartRepositoryInterface;
 use App\Services\CheckoutService;
-use App\Services\DigitalInvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -17,18 +17,14 @@ class WebhookController extends Controller
 {
     protected $checkoutService;
 
-    protected CartRepositoryInterface $cartRepository;
-
-    protected DigitalInvitationService $digitalInvitationService;
+    protected $cartRepository;
 
     public function __construct(
         CheckoutService $checkoutService,
-        CartRepositoryInterface $cartRepository,
-        DigitalInvitationService $digitalInvitationService
+        CartRepositoryInterface $cartRepository
     ) {
         $this->checkoutService = $checkoutService;
         $this->cartRepository = $cartRepository;
-        $this->digitalInvitationService = $digitalInvitationService;
     }
 
     private function resolvePaymentByOrderId(string $orderId): ?Payment
@@ -188,22 +184,19 @@ class WebhookController extends Controller
             Mail::to($order->customer->email)->send(new PaymentConfirmed($order, $payment));
         }
 
-        // Auto-create and activate digital invitation for full/final payments
+        // Auto-create and activate digital invitations for full/final payments
+        // Note: Down payments are not supported for digital products
         if (in_array($payment->payment_type, ['full', 'final'])) {
             try {
-                $invitation = $this->digitalInvitationService->createFromOrder($order);
-                
-                // Auto-activate the invitation after creation
-                if ($invitation) {
-                    $this->digitalInvitationService->activate($invitation->id);
-                    Log::info('Digital invitation created and activated', [
-                        'order_id' => $order->id,
-                        'invitation_id' => $invitation->id,
-                        'slug' => $invitation->slug,
-                    ]);
-                }
+                // Dispatch job to process digital invitations asynchronously
+                // This prevents webhook timeout for orders with multiple digital products
+                ProcessDigitalInvitations::dispatch($order);
+
+                Log::info('ProcessDigitalInvitations job dispatched', [
+                    'order_id' => $order->id,
+                ]);
             } catch (\Exception $e) {
-                Log::error('Failed to create/activate digital invitation: '.$e->getMessage(), [
+                Log::error('Failed to dispatch ProcessDigitalInvitations job: '.$e->getMessage(), [
                     'order_id' => $order->id,
                     'trace' => $e->getTraceAsString(),
                 ]);

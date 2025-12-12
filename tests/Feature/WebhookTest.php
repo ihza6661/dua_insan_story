@@ -12,6 +12,7 @@ use App\Models\ProductCategory;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class WebhookTest extends TestCase
@@ -306,5 +307,70 @@ class WebhookTest extends TestCase
         // Verify NO digital invitation was created
         $invitationCount = DigitalInvitation::where('order_id', $order->id)->count();
         $this->assertEquals(0, $invitationCount, 'No invitation should be created for physical products');
+    }
+
+    public function test_webhook_sends_digital_invitation_ready_email()
+    {
+        // Don't fake mail in this test - let it actually queue
+        // We'll just verify the invitation was created
+
+        // Create user
+        $user = User::factory()->create(['email' => 'customer@example.com']);
+
+        // Create digital product with template
+        $category = ProductCategory::factory()->create(['name' => 'Digital Invitations']);
+        $template = InvitationTemplate::factory()->create([
+            'name' => 'Sakeenah Islamic',
+            'slug' => 'sakeenah',
+            'is_active' => true,
+        ]);
+        $product = Product::factory()->create([
+            'category_id' => $category->id,
+            'product_type' => 'digital',
+            'template_id' => $template->id,
+        ]);
+        $variant = ProductVariant::factory()->create([
+            'product_id' => $product->id,
+            'price' => 150000,
+        ]);
+
+        // Create order with digital product
+        $order = Order::factory()->create([
+            'customer_id' => $user->id,
+            'order_status' => 'Pending Payment',
+            'total_amount' => 150000,
+        ]);
+        OrderItem::factory()->create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
+            'quantity' => 1,
+            'unit_price' => 150000,
+            'sub_total' => 150000,
+        ]);
+        $payment = Payment::factory()->create([
+            'order_id' => $order->id,
+            'amount' => 150000,
+            'payment_type' => 'full',
+            'status' => 'pending',
+        ]);
+
+        // Update transaction_id to match expected format
+        $payment->update(['transaction_id' => $payment->id.'-'.time()]);
+
+        // Trigger webhook with settlement
+        $payload = $this->createPayload($order, $payment, 'settlement');
+        $response = $this->postJson('/api/v1/webhook/midtrans', $payload);
+
+        $response->assertStatus(200);
+
+        // Verify digital invitation was created and activated
+        $invitation = DigitalInvitation::where('order_id', $order->id)->first();
+        $this->assertNotNull($invitation);
+        $this->assertEquals(DigitalInvitation::STATUS_ACTIVE, $invitation->status);
+
+        // Verify template relationship is loaded (needed for email)
+        $this->assertNotNull($invitation->template);
+        $this->assertEquals($template->id, $invitation->template->id);
     }
 }

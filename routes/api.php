@@ -49,12 +49,17 @@ Route::prefix('v1')->group(function () {
         // Public routes for invitation templates
         Route::get('/invitation-templates', [Customer\InvitationTemplateController::class, 'index']);
         Route::get('/invitation-templates/{slug}', [Customer\InvitationTemplateController::class, 'show']);
+        Route::get('/invitation-templates/{templateId}/fields', [Customer\InvitationTemplateController::class, 'getFields']);
+        Route::get('/invitation-templates/{templateId}/color-themes', [Customer\ColorThemeController::class, 'getTemplateThemes']);
 
         // Public review routes
         Route::get('/products/{productId}/reviews', [Customer\ReviewController::class, 'index'])->middleware('throttle:30,1');
         Route::get('/products/{productId}/reviews/summary', [Customer\ReviewController::class, 'getRatingSummary'])->middleware('throttle:30,1');
         Route::get('/reviews/{review}', [Customer\ReviewController::class, 'show'])->middleware('throttle:30,1');
         Route::post('/reviews/{review}/helpful', [Customer\ReviewController::class, 'markAsHelpful'])->middleware('throttle:10,1');
+
+        // Public UGC routes
+        Route::get('/ugc', [Customer\UserGeneratedContentController::class, 'index']);
     });
 
     // --- Rute dengan Autentikasi Opsional (Untuk Keranjang Tamu) ---
@@ -123,6 +128,25 @@ Route::prefix('v1')->group(function () {
         Route::delete('/digital-invitations/{id}/photos/{photoIndex}', [Customer\DigitalInvitationController::class, 'deletePhoto']);
         Route::post('/digital-invitations/{id}/activate', [Customer\DigitalInvitationController::class, 'activate']);
         Route::post('/digital-invitations/{id}/deactivate', [Customer\DigitalInvitationController::class, 'deactivate']);
+        Route::put('/digital-invitations/{id}/slug', [Customer\DigitalInvitationController::class, 'updateSlug']);
+        Route::post('/digital-invitations/{id}/schedule-activation', [Customer\DigitalInvitationController::class, 'scheduleActivation']);
+        Route::delete('/digital-invitations/{id}/schedule-activation', [Customer\DigitalInvitationController::class, 'cancelScheduledActivation']);
+        Route::get('/digital-invitations/{id}/preview', [Customer\DigitalInvitationController::class, 'preview']);
+        
+        // Digital Invitation Export Routes (Customer - authenticated)
+        Route::get('/digital-invitations/{id}/export/pdf', [Customer\DigitalInvitationExportController::class, 'exportPdf']);
+        Route::post('/digital-invitations/{id}/export/save-pdf', [Customer\DigitalInvitationExportController::class, 'savePdf']);
+        Route::get('/digital-invitations/{id}/export/stats', [Customer\DigitalInvitationExportController::class, 'getExportStats']);
+        Route::get('/digital-invitations/{id}/export/pdf-metadata', [Customer\DigitalInvitationExportController::class, 'previewPdfMetadata']);
+
+        // Color Theme Routes (Customer - authenticated)
+        Route::get('/digital-invitations/{id}/color-theme', [Customer\ColorThemeController::class, 'getCurrentTheme']);
+        Route::post('/digital-invitations/{id}/color-theme', [Customer\ColorThemeController::class, 'applyTheme']);
+
+        // User Generated Content Routes (Customer - authenticated)
+        Route::post('/ugc', [Customer\UserGeneratedContentController::class, 'store'])->middleware('throttle:10,60'); // 10 per hour
+        Route::get('/ugc/my-submissions', [Customer\UserGeneratedContentController::class, 'mySubmissions']);
+        Route::delete('/ugc/{ugc}', [Customer\UserGeneratedContentController::class, 'destroy']);
 
         // Recommendation Routes (Customer - authenticated)
         Route::get('/recommendations/personalized', [Customer\RecommendationController::class, 'personalized']);
@@ -226,6 +250,22 @@ Route::prefix('v1/admin')
         // Digital Invitation Routes (Admin)
         Route::get('/digital-invitations', [Admin\DigitalInvitationController::class, 'index'])->name('digital-invitations.index');
         Route::get('/digital-invitations/statistics', [Admin\DigitalInvitationController::class, 'statistics'])->name('digital-invitations.statistics');
+        Route::get('/digital-invitations/scheduled', [Admin\DigitalInvitationController::class, 'scheduled'])->name('digital-invitations.scheduled');
         Route::get('/digital-invitations/{id}', [Admin\DigitalInvitationController::class, 'show'])->name('digital-invitations.show');
         Route::delete('/digital-invitations/{id}', [Admin\DigitalInvitationController::class, 'destroy'])->name('digital-invitations.destroy');
+
+        // Color Theme Routes (Admin)
+        Route::get('/invitation-templates/{templateId}/color-themes', [Admin\ColorThemeController::class, 'index'])->name('color-themes.index');
+        Route::post('/invitation-templates/{templateId}/color-themes', [Admin\ColorThemeController::class, 'store'])->name('color-themes.store');
+        Route::put('/invitation-templates/{templateId}/color-themes/{themeKey}', [Admin\ColorThemeController::class, 'update'])->name('color-themes.update');
+
+        // User Generated Content Routes (Admin)
+        Route::get('/ugc', [Admin\UserGeneratedContentController::class, 'index'])->name('ugc.index');
+        Route::post('/ugc/{ugc}/approve', [Admin\UserGeneratedContentController::class, 'approve'])->name('ugc.approve');
+        Route::post('/ugc/{ugc}/unapprove', [Admin\UserGeneratedContentController::class, 'unapprove'])->name('ugc.unapprove');
+        Route::post('/ugc/{ugc}/toggle-featured', [Admin\UserGeneratedContentController::class, 'toggleFeatured'])->name('ugc.toggle-featured');
+        Route::delete('/ugc/{ugc}', [Admin\UserGeneratedContentController::class, 'destroy'])->name('ugc.destroy');
+
+        Route::delete('/invitation-templates/{templateId}/color-themes/{themeKey}', [Admin\ColorThemeController::class, 'destroy'])->name('color-themes.destroy');
+        Route::post('/invitation-templates/{templateId}/color-themes/set-defaults', [Admin\ColorThemeController::class, 'setDefaults'])->name('color-themes.set-defaults');
     });

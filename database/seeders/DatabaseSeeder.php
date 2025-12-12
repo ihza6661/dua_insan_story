@@ -29,14 +29,17 @@ class DatabaseSeeder extends Seeder
             // Digital products (creates products from templates)
             DigitalProductSeeder::class,
 
-            // Order and Review seeders
-            OrderSeeder::class,
+            // Comprehensive order seeder (replaces old OrderSeeder + PhysicalProductOrdersSeeder)
+            ComprehensiveOrderSeeder::class,
             InvitationDetailSeeder::class,
             ReviewSeeder::class,
             ReviewImageSeeder::class,
 
             // Promo Code seeder
             PromoCodeSeeder::class,
+
+            // Test digital invitations (creates sample invitations with orders)
+            DigitalInvitationTestSeeder::class,
         ]);
     }
 }

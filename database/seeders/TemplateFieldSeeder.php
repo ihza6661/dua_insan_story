@@ -288,8 +288,235 @@ class TemplateFieldSeeder extends Seeder
         // Mark template as having custom fields
         $sakeenah->update(['has_custom_fields' => true]);
 
-        $this->command->info('✅ Template fields seeded successfully!');
-        $this->command->info('   - Created ' . count($fields) . ' fields for Sakeenah template');
-        $this->command->info('   - Categories: Couple (6), Event (4), Venue (3), Design (2)');
+        $this->command->info('✅ Sakeenah template: Created ' . count($fields) . ' fields');
+
+        // Now create fields for Classic Elegant template
+        $classic = InvitationTemplate::where('slug', 'classic-elegant-traditional')->first();
+        
+        if (!$classic) {
+            $this->command->warn('⚠️  Classic template not found. Skipping.');
+            return;
+        }
+
+        // Classic template has simpler fields (more traditional, less Islamic-specific)
+        $classicFields = [
+            // Couple Info
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'bride_name',
+                'field_label' => 'Nama Lengkap Mempelai Wanita',
+                'field_type' => 'text',
+                'field_category' => 'couple',
+                'placeholder' => 'contoh: Sarah Putri Wijaya',
+                'default_value' => null,
+                'help_text' => 'Nama lengkap mempelai wanita',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 3,
+                    'max' => 100,
+                ],
+                'display_order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'bride_nickname',
+                'field_label' => 'Nama Panggilan Mempelai Wanita',
+                'field_type' => 'text',
+                'field_category' => 'couple',
+                'placeholder' => 'contoh: Sarah',
+                'default_value' => null,
+                'help_text' => 'Nama yang biasa dipanggil (ditampilkan di halaman utama)',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 2,
+                    'max' => 50,
+                ],
+                'display_order' => 2,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'bride_parents',
+                'field_label' => 'Orang Tua Mempelai Wanita',
+                'field_type' => 'text',
+                'field_category' => 'couple',
+                'placeholder' => 'contoh: Bapak Budi & Ibu Sari',
+                'default_value' => null,
+                'help_text' => 'Nama kedua orang tua',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 5,
+                    'max' => 150,
+                ],
+                'display_order' => 3,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'groom_name',
+                'field_label' => 'Nama Lengkap Mempelai Pria',
+                'field_type' => 'text',
+                'field_category' => 'couple',
+                'placeholder' => 'contoh: Ahmad Hidayat Santoso',
+                'default_value' => null,
+                'help_text' => 'Nama lengkap mempelai pria',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 3,
+                    'max' => 100,
+                ],
+                'display_order' => 4,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'groom_nickname',
+                'field_label' => 'Nama Panggilan Mempelai Pria',
+                'field_type' => 'text',
+                'field_category' => 'couple',
+                'placeholder' => 'contoh: Ahmad',
+                'default_value' => null,
+                'help_text' => 'Nama yang biasa dipanggil (ditampilkan di halaman utama)',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 2,
+                    'max' => 50,
+                ],
+                'display_order' => 5,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'groom_parents',
+                'field_label' => 'Orang Tua Mempelai Pria',
+                'field_type' => 'text',
+                'field_category' => 'couple',
+                'placeholder' => 'contoh: Bapak Ahmad & Ibu Dewi',
+                'default_value' => null,
+                'help_text' => 'Nama kedua orang tua',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 5,
+                    'max' => 150,
+                ],
+                'display_order' => 6,
+                'is_active' => true,
+            ],
+
+            // Event Details
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'event_date',
+                'field_label' => 'Tanggal Acara',
+                'field_type' => 'date',
+                'field_category' => 'event',
+                'placeholder' => null,
+                'default_value' => null,
+                'help_text' => 'Tanggal pelaksanaan acara pernikahan',
+                'validation_rules' => [
+                    'required' => true,
+                ],
+                'display_order' => 7,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'event_time',
+                'field_label' => 'Waktu Acara',
+                'field_type' => 'time',
+                'field_category' => 'event',
+                'placeholder' => null,
+                'default_value' => '19:00',
+                'help_text' => 'Waktu mulai acara',
+                'validation_rules' => [
+                    'required' => true,
+                ],
+                'display_order' => 8,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'event_location',
+                'field_label' => 'Lokasi Acara',
+                'field_type' => 'textarea',
+                'field_category' => 'venue',
+                'placeholder' => 'contoh: Grand Ballroom Hotel Mulia, Jl. Asia Afrika No. 8, Jakarta',
+                'default_value' => null,
+                'help_text' => 'Alamat lengkap lokasi acara',
+                'validation_rules' => [
+                    'required' => true,
+                    'min' => 10,
+                    'max' => 300,
+                ],
+                'display_order' => 9,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'gmaps_link',
+                'field_label' => 'Link Google Maps',
+                'field_type' => 'url',
+                'field_category' => 'venue',
+                'placeholder' => 'https://maps.google.com/...',
+                'default_value' => null,
+                'help_text' => 'Link Google Maps untuk lokasi (opsional)',
+                'validation_rules' => [
+                    'required' => false,
+                ],
+                'display_order' => 10,
+                'is_active' => true,
+            ],
+
+            // Design
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'couple_photo',
+                'field_label' => 'Foto Pasangan',
+                'field_type' => 'image',
+                'field_category' => 'design',
+                'placeholder' => null,
+                'default_value' => null,
+                'help_text' => 'Upload foto bersama (maks 2MB)',
+                'validation_rules' => [
+                    'required' => false,
+                ],
+                'display_order' => 11,
+                'is_active' => true,
+            ],
+            [
+                'template_id' => $classic->id,
+                'field_key' => 'theme_color',
+                'field_label' => 'Warna Tema',
+                'field_type' => 'color',
+                'field_category' => 'design',
+                'placeholder' => null,
+                'default_value' => '#D4AF37',
+                'help_text' => 'Warna aksen untuk tema undangan',
+                'validation_rules' => [
+                    'required' => false,
+                ],
+                'display_order' => 12,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($classicFields as $field) {
+            TemplateField::updateOrCreate(
+                [
+                    'template_id' => $field['template_id'],
+                    'field_key' => $field['field_key'],
+                ],
+                $field
+            );
+        }
+
+        $classic->update(['has_custom_fields' => true]);
+
+        $this->command->info('✅ Classic template: Created ' . count($classicFields) . ' fields');
+        $this->command->info('');
+        $this->command->info('📊 Summary:');
+        $this->command->info('   Total fields created: ' . (count($fields) + count($classicFields)));
+        $this->command->info('   Templates with fields: 2');
     }
 }
