@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 
 class InvitationDetail extends Model
 {
@@ -34,6 +35,8 @@ class InvitationDetail extends Model
         'reception_date' => 'date',
     ];
 
+    protected $appends = ['prewedding_photo_url'];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
@@ -60,6 +63,33 @@ class InvitationDetail extends Model
 
                 return str_replace('.', ':', $time);
             },
+        );
+    }
+
+    protected function preweddingPhotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (! $this->prewedding_photo_path) {
+                    return null;
+                }
+
+                $disk = config('filesystems.user_uploads');
+                
+                // For Cloudinary, the path stored is a public_id
+                // Generate the full URL using Cloudinary helper
+                if ($disk === 'cloudinary') {
+                    try {
+                        return cloudinary()->image($this->prewedding_photo_path)->toUrl();
+                    } catch (\Exception $e) {
+                        Log::warning("Failed to generate Cloudinary URL for {$this->prewedding_photo_path}: {$e->getMessage()}");
+                        return null;
+                    }
+                }
+                
+                // For local storage, use asset helper
+                return asset('media/' . $this->prewedding_photo_path);
+            }
         );
     }
 }

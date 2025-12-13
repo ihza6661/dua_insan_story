@@ -29,8 +29,7 @@ class InvitationDetailResource extends JsonResource
             'reception_time' => $this->reception_time,
             'reception_location' => $this->reception_location,
             'gmaps_link' => $this->gmaps_link,
-            'prewedding_photo' => $this->when($this->prewedding_photo_path,
-                fn () => URL::route('media.stream', ['path' => $this->prewedding_photo_path])),
+            'prewedding_photo' => $this->prewedding_photo_url,
         ];
     }
 }
