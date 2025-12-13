@@ -48,6 +48,9 @@ class ComprehensiveOrderSeeder extends Seeder
         // Part 1: Realistic scenario-based orders (for testing)
         $this->createRealisticScenarios($customers, $physicalProducts);
 
+        // Part 1.5: Guaranteed reviewable orders for demo customer (ensures ReviewSeeder has enough data)
+        $this->createGuaranteedReviewableOrders($customers, $physicalProducts);
+
         // Part 2: Historical revenue orders (for dashboard)
         $this->createRevenueOrders($customers, $physicalProducts, $digitalProducts);
 
@@ -117,11 +120,122 @@ class ComprehensiveOrderSeeder extends Seeder
     }
 
     /**
+     * Create guaranteed reviewable orders for demo customer
+     * This ensures ReviewSeeder has enough completed orders to create reviews
+     */
+    private function createGuaranteedReviewableOrders($customers, $physicalProducts): void
+    {
+        // Get the demo customer
+        $demoCustomer = $customers->firstWhere('email', 'customer@example.com');
+        
+        if (!$demoCustomer) {
+            $this->command->warn('⚠️  Demo customer (customer@example.com) not found. Skipping guaranteed reviewable orders.');
+            return;
+        }
+
+        if ($physicalProducts->isEmpty()) {
+            $this->command->warn('⚠️  No physical products available for guaranteed reviewable orders.');
+            return;
+        }
+
+        $this->command->info('');
+        $this->command->info('📝 PART 1.5: Creating Guaranteed Reviewable Orders');
+        $this->command->info('────────────────────────────────────────────');
+        $this->command->info('Creating orders for customer@example.com to ensure reviews can be seeded...');
+        $this->command->info('');
+
+        $statuses = [Order::STATUS_COMPLETED, Order::STATUS_DELIVERED];
+        
+        // Create 8 orders with completed/delivered status
+        // This guarantees 8-16 reviewable items (ReviewSeeder needs minimum 5, targets 15)
+        for ($i = 0; $i < 8; $i++) {
+            $product = $physicalProducts->random();
+            $variant = $product->variants()->inRandomOrder()->first();
+            
+            if (!$variant) {
+                continue;
+            }
+
+            $quantity = rand(150, 300);
+            $subtotal = $variant->price * $quantity;
+            $shippingCost = rand(15000, 30000);
+            $totalAmount = $subtotal + $shippingCost;
+            
+            // Random date: 2-4 weeks ago (realistic for reviews)
+            $daysAgo = rand(14, 28);
+            $createdAt = now()->subDays($daysAgo);
+            $updatedAt = $createdAt->copy()->addDays(rand(7, 14));
+            
+            // Alternate between Completed and Delivered
+            $status = $statuses[$i % 2];
+            
+            $shippingServices = ['JNE REG', 'J&T Express', 'SiCepat REG', 'AnterAja REG'];
+            $shippingService = $shippingServices[array_rand($shippingServices)];
+
+            // Create order
+            $orderId = DB::table('orders')->insertGetId([
+                'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+                'customer_id' => $demoCustomer->id,
+                'order_status' => $status,
+                'payment_status' => 'settlement',
+                'subtotal_amount' => $subtotal,
+                'shipping_cost' => $shippingCost,
+                'shipping_method' => $shippingService,
+                'total_amount' => $totalAmount,
+                'payment_gateway' => 'midtrans',
+                'shipping_address' => json_encode([
+                    'recipient_name' => 'Demo Customer',
+                    'phone' => '081234567890',
+                    'address' => 'Jl. Contoh No. ' . rand(1, 100),
+                    'city' => 'Jakarta',
+                    'province' => 'DKI Jakarta',
+                    'postal_code' => '12345',
+                ]),
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
+
+            // Create order item
+            DB::table('order_items')->insert([
+                'order_id' => $orderId,
+                'product_id' => $product->id,
+                'product_variant_id' => $variant->id,
+                'quantity' => $quantity,
+                'unit_price' => $variant->price,
+                'sub_total' => $subtotal,
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
+
+            // Create payment record
+            DB::table('payments')->insert([
+                'order_id' => $orderId,
+                'payment_type' => 'full',
+                'payment_gateway' => 'midtrans',
+                'amount' => $totalAmount,
+                'status' => 'settlement',
+                'transaction_id' => 'TRX-' . strtoupper(Str::random(16)),
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ]);
+
+            $order = Order::find($orderId);
+            $statusEmoji = ($status === Order::STATUS_COMPLETED) ? '✅' : '📦';
+            $this->command->info("  {$statusEmoji} {$order->order_number} - {$status} - {$product->name} - Rp " . number_format($order->total_amount, 0, ',', '.'));
+        }
+
+        $this->command->info('');
+        $this->command->info("✅ Created 8 guaranteed reviewable orders for customer@example.com");
+        $this->command->info('   This ensures ReviewSeeder will have sufficient data to create reviews.');
+        $this->command->info('');
+    }
+
+    /**
      * Create revenue-generating orders for dashboard analytics
      */
     private function createRevenueOrders($customers, $physicalProducts, $digitalProducts): void
     {
-        $this->command->info('📊 PART 2: Creating Revenue Orders (Dashboard Data)');
+        $this->command->info('📊 PART 3: Creating Revenue Orders (Dashboard Data)');
         $this->command->info('────────────────────────────────────────────');
         $this->command->info('');
 

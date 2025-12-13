@@ -49,7 +49,9 @@ class ReviewSeeder extends Seeder
         $customer = User::where('email', 'customer@example.com')->first();
 
         if (! $customer) {
-            $this->command->error('Customer user not found! Please run UserSeeder first.');
+            $this->command->error('❌ Customer user not found!');
+            $this->command->warn('Please run UserSeeder first to create customer@example.com');
+            $this->command->info('💡 Alternatively, run: php artisan reviews:ensure-exist');
 
             return;
         }
@@ -61,7 +63,39 @@ class ReviewSeeder extends Seeder
         })->with(['product', 'order'])->get();
 
         if ($orderItems->count() < 5) {
-            $this->command->error('Not enough order items! Please run OrderSeeder first.');
+            $this->command->error('❌ Not enough order items for customer@example.com!');
+            $this->command->warn("   Found: {$orderItems->count()} reviewable items | Required: 5+ items");
+            $this->command->newLine();
+            
+            // Show helpful information about available customers
+            $this->command->info('📊 Available customers with completed orders:');
+            $alternativeCustomers = User::where('role', 'customer')
+                ->whereHas('orders', function ($q) {
+                    $q->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED]);
+                })
+                ->get();
+
+            if ($alternativeCustomers->isEmpty()) {
+                $this->command->warn('   No customers with completed/delivered orders found!');
+            } else {
+                foreach ($alternativeCustomers->take(5) as $alt) {
+                    $itemCount = OrderItem::whereHas('order', function ($q) use ($alt) {
+                        $q->where('customer_id', $alt->id)
+                            ->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED]);
+                    })->count();
+                    
+                    if ($itemCount > 0) {
+                        $icon = ($itemCount >= 5) ? '✅' : '⚠️ ';
+                        $this->command->line("   {$icon} {$alt->email}: {$itemCount} reviewable items");
+                    }
+                }
+            }
+            
+            $this->command->newLine();
+            $this->command->warn('💡 Solutions:');
+            $this->command->info('   1. Run ComprehensiveOrderSeeder to create more orders');
+            $this->command->info('   2. Use: php artisan reviews:ensure-exist (creates reviews from any available orders)');
+            $this->command->newLine();
 
             return;
         }
