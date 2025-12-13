@@ -39,11 +39,17 @@ class CompleteTestSeeder extends Seeder
             ProductCategorySeeder::class,
             InvitationTemplateSeeder::class,
             TemplateFieldSeeder::class,
+            AddOnSeeder::class,
+            AttributeSeeder::class,
             ProductsTableSeeder::class,
-            ProductVariantsTableSeeder::class, // Add variants
+            ProductVariantsTableSeeder::class,
+            ProductAddOnsTableSeeder::class,
             DigitalProductSeeder::class,
-            ProductImageSeeder::class, // Now it will work
-            ComprehensiveOrderSeeder::class, // Add comprehensive orders
+            ProductImageSeeder::class,
+            PromoCodeSeeder::class,
+            ComprehensiveOrderSeeder::class,
+            ReviewSeeder::class,
+            ReviewImageSeeder::class,
         ]);
 
         // Step 2: Create test digital invitation orders
@@ -271,6 +277,10 @@ class CompleteTestSeeder extends Seeder
         $orders = Order::count();
         $invitations = \App\Models\DigitalInvitation::count();
         $notifications = \App\Models\Notification::count();
+        $reviews = \App\Models\Review::count();
+        $promoCodes = \App\Models\PromoCode::count();
+        $addOns = \App\Models\AddOn::count();
+        $attributes = \App\Models\Attribute::count();
 
         $this->command->table(
             ['Entity', 'Count'],
@@ -281,6 +291,10 @@ class CompleteTestSeeder extends Seeder
                 ['Orders', $orders],
                 ['Digital Invitations', $invitations],
                 ['Notifications', $notifications],
+                ['Reviews', $reviews],
+                ['Promo Codes', $promoCodes],
+                ['Add-ons', $addOns],
+                ['Attributes', $attributes],
             ]
         );
 

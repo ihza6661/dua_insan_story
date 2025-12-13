@@ -18,7 +18,10 @@ class AddOnSeeder extends Seeder
         ];
 
         foreach ($addOns as $addOn) {
-            AddOn::create($addOn);
+            AddOn::firstOrCreate(
+                ['name' => $addOn['name']],
+                $addOn
+            );
         }
     }
 }
