@@ -92,6 +92,10 @@ class ProductVariantsTableSeeder extends Seeder
                 'updated_at' => '2025-11-18 14:00:00',
             ],
         ]);
+        
+        // Reset PostgreSQL sequence to continue from the highest ID
+        \DB::statement("SELECT setval(pg_get_serial_sequence('product_variants', 'id'), COALESCE((SELECT MAX(id) FROM product_variants), 1), true)");
+        
         Schema::enableForeignKeyConstraints();
 
     }
