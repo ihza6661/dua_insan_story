@@ -117,42 +117,50 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $query = $this->model->with($relations);
 
-        // Search by order number or customer name (optimized with join instead of whereHas)
+        // Search by order number or customer name
+        // Fixed: Use leftJoin outside where clause for proper PostgreSQL compatibility
         if (! empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('orders.id', 'like', "%{$search}%")
-                    ->orWhere('orders.order_number', 'like', "%{$search}%")
-                    ->orWhere(function ($q) use ($search) {
-                        $q->join('users', 'orders.user_id', '=', 'users.id')
-                            ->where('users.full_name', 'like', "%{$search}%")
-                            ->orWhere('users.email', 'like', "%{$search}%");
-                    });
+            $search = strtolower($filters['search']); // Normalize search term
+            
+            // Join users table once for customer search
+            $query->leftJoin('users', 'orders.customer_id', '=', 'users.id');
+            
+            // Database-agnostic case-insensitive search using LOWER()
+            // Use CONCAT for MySQL or CAST for PostgreSQL to convert id to string
+            $driver = config('database.default');
+            $idCast = $driver === 'pgsql' ? 'CAST(orders.id AS TEXT)' : 'CAST(orders.id AS CHAR)';
+            
+            $query->where(function ($q) use ($search, $idCast) {
+                $q->whereRaw("LOWER({$idCast}) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw('LOWER(orders.order_number) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(users.full_name) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(users.email) LIKE ?', ["%{$search}%"]);
             });
-            // Select distinct to avoid duplicates from join
+            
+            // Select distinct orders to avoid duplicates from join
             $query->select('orders.*')->distinct();
         }
 
         // Filter by order status
         if (! empty($filters['order_status']) && $filters['order_status'] !== 'all') {
-            $query->where('order_status', $filters['order_status']);
+            $query->where('orders.order_status', $filters['order_status']);
         }
 
         // Filter by payment status
         if (! empty($filters['payment_status']) && $filters['payment_status'] !== 'all') {
-            $query->where('payment_status', $filters['payment_status']);
+            $query->where('orders.payment_status', $filters['payment_status']);
         }
 
         // Filter by date range
         if (! empty($filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['date_from']);
+            $query->whereDate('orders.created_at', '>=', $filters['date_from']);
         }
 
         if (! empty($filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['date_to']);
+            $query->whereDate('orders.created_at', '<=', $filters['date_to']);
         }
 
-        return $query->latest()->paginate($perPage);
+        return $query->latest('orders.created_at')->paginate($perPage);
     }
 
     /**
@@ -162,41 +170,49 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $query = $this->model->with($relations);
 
-        // Search by order number or customer name (optimized with join instead of whereHas)
+        // Search by order number or customer name
+        // Fixed: Use leftJoin outside where clause for proper PostgreSQL compatibility
         if (! empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('orders.id', 'like', "%{$search}%")
-                    ->orWhere('orders.order_number', 'like', "%{$search}%")
-                    ->orWhere(function ($q) use ($search) {
-                        $q->join('users', 'orders.user_id', '=', 'users.id')
-                            ->where('users.full_name', 'like', "%{$search}%")
-                            ->orWhere('users.email', 'like', "%{$search}%");
-                    });
+            $search = strtolower($filters['search']); // Normalize search term
+            
+            // Join users table once for customer search
+            $query->leftJoin('users', 'orders.customer_id', '=', 'users.id');
+            
+            // Database-agnostic case-insensitive search using LOWER()
+            // Use CONCAT for MySQL or CAST for PostgreSQL to convert id to string
+            $driver = config('database.default');
+            $idCast = $driver === 'pgsql' ? 'CAST(orders.id AS TEXT)' : 'CAST(orders.id AS CHAR)';
+            
+            $query->where(function ($q) use ($search, $idCast) {
+                $q->whereRaw("LOWER({$idCast}) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw('LOWER(orders.order_number) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(users.full_name) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(users.email) LIKE ?', ["%{$search}%"]);
             });
-            // Select distinct to avoid duplicates from join
+            
+            // Select distinct orders to avoid duplicates from join
             $query->select('orders.*')->distinct();
         }
 
         // Filter by order status
         if (! empty($filters['order_status']) && $filters['order_status'] !== 'all') {
-            $query->where('order_status', $filters['order_status']);
+            $query->where('orders.order_status', $filters['order_status']);
         }
 
         // Filter by payment status
         if (! empty($filters['payment_status']) && $filters['payment_status'] !== 'all') {
-            $query->where('payment_status', $filters['payment_status']);
+            $query->where('orders.payment_status', $filters['payment_status']);
         }
 
         // Filter by date range
         if (! empty($filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['date_from']);
+            $query->whereDate('orders.created_at', '>=', $filters['date_from']);
         }
 
         if (! empty($filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['date_to']);
+            $query->whereDate('orders.created_at', '<=', $filters['date_to']);
         }
 
-        return $query->latest()->get();
+        return $query->latest('orders.created_at')->get();
     }
 }
