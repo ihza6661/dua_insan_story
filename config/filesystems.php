@@ -85,7 +85,8 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
-        public_path('media') => storage_path('app/public'),
+        // Note: /media is handled by Laravel route in routes/web.php instead of symlink
+        // because Heroku Apache doesn't allow symlinks
     ],
 
     /*
