@@ -252,11 +252,6 @@ class ComprehensiveOrderSeeder extends Seeder
             'shipping_method' => $config['shipping_method'],
             'total_amount' => $totalAmount,
             'shipping_address' => $this->getShippingAddress($data['scenario']),
-            'custom_data' => json_encode([
-                'wedding_couple' => $data['couple'],
-                'wedding_date' => now()->addDays(45 + $data['days_ago'])->format('Y-m-d'),
-                'notes' => "Order untuk pernikahan {$data['couple']}",
-            ]),
             'created_at' => $config['created_at'],
             'updated_at' => $config['updated_at'],
         ]);
@@ -310,11 +305,6 @@ class ComprehensiveOrderSeeder extends Seeder
             'shipping_method' => 'JNE REG',
             'total_amount' => 0,
             'shipping_address' => 'Jl. Diponegoro No. 55, Yogyakarta 55122',
-            'custom_data' => json_encode([
-                'wedding_couple' => 'Andi & Lina',
-                'wedding_date' => now()->addDays(65)->format('Y-m-d'),
-                'notes' => 'Paket lengkap: undangan + souvenir + kartu ucapan',
-            ]),
             'created_at' => now()->subDays(4),
             'updated_at' => now()->subDays(2),
         ]);
