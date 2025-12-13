@@ -221,12 +221,6 @@ class DraftInvitationSeeder extends Seeder
                 'payment_status' => 'PAID',
                 'order_status' => 'PAID',
                 'snap_token' => 'test-' . Str::random(32),
-                'custom_data' => json_encode([
-                    'product_id' => $data['product']->id,
-                    'product_name' => $data['product']->name,
-                    'product_type' => 'digital',
-                    'template_id' => $data['template_id'],
-                ]),
             ]);
 
             $this->command->info("   ✅ Order Created:");
