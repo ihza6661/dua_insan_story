@@ -28,7 +28,9 @@ class DigitalInvitation extends Model
 
     // Status constants
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_EXPIRED = 'expired';
 
     protected $fillable = [
@@ -115,7 +117,7 @@ class DigitalInvitation extends Model
      */
     public function getPublicUrlAttribute(): string
     {
-        return config('app.frontend_url') . '/undangan/' . $this->slug;
+        return config('app.frontend_url').'/undangan/'.$this->slug;
     }
 
     /**
@@ -123,7 +125,7 @@ class DigitalInvitation extends Model
      * An invitation is considered expired if:
      * - Status is 'expired', OR
      * - Status is 'active' AND expires_at is in the past
-     * 
+     *
      * Draft invitations are never considered expired.
      */
     public function getIsExpiredAttribute(): bool
@@ -144,5 +146,134 @@ class DigitalInvitation extends Model
         }
 
         return false;
+    }
+
+    // ========== DATA ACCESSORS ==========
+    // These accessors retrieve wedding data from the data relationship
+
+    /**
+     * Get bride's full name from invitation data.
+     */
+    public function getBrideFullNameAttribute(): ?string
+    {
+        return $this->data?->bride_name ?? $this->getCustomField('bride_full_name');
+    }
+
+    /**
+     * Get groom's full name from invitation data.
+     */
+    public function getGroomFullNameAttribute(): ?string
+    {
+        return $this->data?->groom_name ?? $this->getCustomField('groom_full_name');
+    }
+
+    /**
+     * Get bride's nickname from invitation data.
+     */
+    public function getBrideNicknameAttribute(): ?string
+    {
+        return $this->getCustomField('bride_nickname');
+    }
+
+    /**
+     * Get groom's nickname from invitation data.
+     */
+    public function getGroomNicknameAttribute(): ?string
+    {
+        return $this->getCustomField('groom_nickname');
+    }
+
+    /**
+     * Get bride's parents from invitation data.
+     */
+    public function getBrideParentsAttribute(): ?string
+    {
+        return $this->getCustomField('bride_parents');
+    }
+
+    /**
+     * Get groom's parents from invitation data.
+     */
+    public function getGroomParentsAttribute(): ?string
+    {
+        return $this->getCustomField('groom_parents');
+    }
+
+    /**
+     * Get akad date from invitation data.
+     */
+    public function getAkadDateAttribute(): ?string
+    {
+        return $this->getCustomField('akad_date');
+    }
+
+    /**
+     * Get akad time from invitation data.
+     */
+    public function getAkadTimeAttribute(): ?string
+    {
+        return $this->getCustomField('akad_time');
+    }
+
+    /**
+     * Get akad location from invitation data.
+     */
+    public function getAkadLocationAttribute(): ?string
+    {
+        return $this->getCustomField('akad_location');
+    }
+
+    /**
+     * Get reception date from invitation data.
+     */
+    public function getReceptionDateAttribute(): ?string
+    {
+        return $this->getCustomField('reception_date');
+    }
+
+    /**
+     * Get reception time from invitation data.
+     */
+    public function getReceptionTimeAttribute(): ?string
+    {
+        return $this->getCustomField('reception_time');
+    }
+
+    /**
+     * Get reception location from invitation data.
+     */
+    public function getReceptionLocationAttribute(): ?string
+    {
+        return $this->getCustomField('reception_location');
+    }
+
+    /**
+     * Get Google Maps link from invitation data.
+     */
+    public function getGmapsLinkAttribute(): ?string
+    {
+        return $this->getCustomField('gmaps_link');
+    }
+
+    /**
+     * Get prewedding photo path from invitation data.
+     */
+    public function getPreweddingPhotoPathAttribute(): ?string
+    {
+        return $this->getCustomField('prewedding_photo_path');
+    }
+
+    /**
+     * Helper method to get custom field value from data relationship.
+     */
+    protected function getCustomField(string $fieldName): ?string
+    {
+        if (! $this->data || ! $this->data->customization_json) {
+            return null;
+        }
+
+        $customFields = $this->data->customization_json['custom_fields'] ?? [];
+
+        return $customFields[$fieldName] ?? null;
     }
 }
