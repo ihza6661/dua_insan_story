@@ -272,7 +272,7 @@ class ComprehensiveOrderSeeder extends Seeder
         if ($data['scenario'] !== 'pending') {
             DB::table('payments')->insert([
                 'order_id' => $orderId,
-                'payment_type' => 'bank_transfer',
+                'payment_type' => 'full',
                 'payment_gateway' => 'midtrans',
                 'amount' => $totalAmount,
                 'status' => $config['payment_db_status'],
@@ -341,7 +341,7 @@ class ComprehensiveOrderSeeder extends Seeder
 
         DB::table('payments')->insert([
             'order_id' => $orderId,
-            'payment_type' => 'bank_transfer',
+            'payment_type' => 'full',
             'payment_gateway' => 'midtrans',
             'amount' => $subtotal + $shippingCost,
             'status' => 'settlement',
@@ -429,7 +429,7 @@ class ComprehensiveOrderSeeder extends Seeder
         if ($paymentStatus !== 'pending') {
             DB::table('payments')->insert([
                 'order_id' => $order->id,
-                'payment_type' => 'bank_transfer',
+                'payment_type' => 'full',
                 'payment_gateway' => 'midtrans',
                 'amount' => $order->total_amount,
                 'status' => $paymentStatus,
