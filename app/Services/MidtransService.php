@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Notification;
@@ -61,14 +62,40 @@ class MidtransService
                 'gross_amount' => (int) $payment->amount, // Ensure integer for safety
             ],
             'customer_details' => [
-                'first_name' => $order->customer->name,
+                'first_name' => $order->customer->full_name ?? 'Customer',
                 'email' => $order->customer->email,
-                'phone' => $order->customer->phone,
+                'phone' => $order->customer->phone_number ?? '',
             ],
             'item_details' => $this->buildItemDetails($order, $payment),
         ];
 
-        return Snap::getSnapToken($params);
+        Log::info('Midtrans createTransactionToken', [
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'transaction_id' => $newTransactionId,
+            'amount' => $payment->amount,
+            'server_key_set' => !empty(Config::$serverKey),
+            'notification_url' => Config::$overrideNotifUrl,
+            'is_production' => Config::$isProduction,
+            'params' => $params,
+        ]);
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+            Log::info('Midtrans snap token created successfully', [
+                'transaction_id' => $newTransactionId,
+            ]);
+            return $snapToken;
+        } catch (\Exception $e) {
+            Log::error('Midtrans createTransactionToken failed', [
+                'order_id' => $order->id,
+                'transaction_id' => $newTransactionId,
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
     }
 
     /**

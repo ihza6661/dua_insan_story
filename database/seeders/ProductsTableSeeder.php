@@ -163,8 +163,9 @@ class ProductsTableSeeder extends Seeder
             ],
         ]);
         
-        // Reset PostgreSQL sequence to continue from the highest ID
-        DB::statement("SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1), true)");
+        // Reset auto-increment to continue from the highest ID
+        $maxId = DB::table('products')->max('id') ?? 0;
+        DB::statement("ALTER TABLE products AUTO_INCREMENT = " . ($maxId + 1));
         
         Schema::enableForeignKeyConstraints();
 

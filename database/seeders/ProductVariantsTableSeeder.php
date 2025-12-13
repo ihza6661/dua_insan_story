@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class ProductVariantsTableSeeder extends Seeder
@@ -93,8 +94,9 @@ class ProductVariantsTableSeeder extends Seeder
             ],
         ]);
         
-        // Reset PostgreSQL sequence to continue from the highest ID
-        \DB::statement("SELECT setval(pg_get_serial_sequence('product_variants', 'id'), COALESCE((SELECT MAX(id) FROM product_variants), 1), true)");
+        // Reset auto-increment to continue from the highest ID
+        $maxId = \DB::table('product_variants')->max('id') ?? 0;
+        \DB::statement("ALTER TABLE product_variants AUTO_INCREMENT = " . ($maxId + 1));
         
         Schema::enableForeignKeyConstraints();
 
