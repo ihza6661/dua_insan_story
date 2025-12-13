@@ -174,20 +174,28 @@ class EnsureReviewsExist extends Command
      */
     private function findCandidateCustomers()
     {
-        return User::where('role', 'customer')
+        // Get customers with completed/delivered orders
+        $customers = User::where('role', 'customer')
             ->whereHas('orders', function ($query) {
                 $query->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED]);
             })
-            ->withCount([
-                'orders as reviewable_items_count' => function ($query) {
-                    $query->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED])
-                        ->join('order_items', 'orders.id', '=', 'order_items.order_id')
-                        ->select(DB::raw('count(order_items.id)'));
-                },
-            ])
-            ->having('reviewable_items_count', '>', 0)
-            ->orderBy('reviewable_items_count', 'desc')
             ->get();
+
+        // Calculate reviewable items count for each customer
+        foreach ($customers as $customer) {
+            $customer->reviewable_items_count = OrderItem::whereHas('order', function ($query) use ($customer) {
+                $query->where('customer_id', $customer->id)
+                    ->whereIn('order_status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED]);
+            })->count();
+        }
+
+        // Filter customers with at least 1 reviewable item and sort
+        return $customers
+            ->filter(function ($customer) {
+                return $customer->reviewable_items_count > 0;
+            })
+            ->sortByDesc('reviewable_items_count')
+            ->values();
     }
 
     /**
