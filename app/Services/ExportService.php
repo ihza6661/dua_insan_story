@@ -16,9 +16,7 @@ class ExportService
     /**
      * Generate PDF for a digital invitation.
      *
-     * @param DigitalInvitation $invitation
-     * @param array $options PDF generation options
-     * @return \Barryvdh\DomPDF\PDF
+     * @param  array  $options  PDF generation options
      */
     public function generatePdf(DigitalInvitation $invitation, array $options = []): \Barryvdh\DomPDF\PDF
     {
@@ -40,7 +38,7 @@ class ExportService
 
         // Apply PDF options
         $pdf->setPaper($options['paper_size'] ?? 'a4', $options['orientation'] ?? 'portrait');
-        
+
         // Set DPI for better image quality
         if (isset($options['dpi'])) {
             $pdf->setOption('dpi', $options['dpi']);
@@ -51,15 +49,11 @@ class ExportService
 
     /**
      * Export invitation as PDF stream (for download).
-     *
-     * @param DigitalInvitation $invitation
-     * @param string|null $filename
-     * @return \Illuminate\Http\Response
      */
     public function downloadPdf(DigitalInvitation $invitation, ?string $filename = null): \Illuminate\Http\Response
     {
         $pdf = $this->generatePdf($invitation);
-        
+
         $filename = $filename ?? $this->generateFilename($invitation, 'pdf');
 
         return $pdf->download($filename);
@@ -68,28 +62,24 @@ class ExportService
     /**
      * Save PDF to storage and return path.
      *
-     * @param DigitalInvitation $invitation
-     * @param string|null $filename
      * @return string Storage path
      */
     public function savePdf(DigitalInvitation $invitation, ?string $filename = null): string
     {
         $pdf = $this->generatePdf($invitation);
-        
+
         $filename = $filename ?? $this->generateFilename($invitation, 'pdf');
         $path = "exports/{$invitation->id}/{$filename}";
 
-        // Save to storage
-        Storage::disk('public')->put($path, $pdf->output());
+        // Use dynamic disk for user uploads (Cloudinary in production, local in dev)
+        $disk = config('filesystems.user_uploads');
+        Storage::disk($disk)->put($path, $pdf->output());
 
         return $path;
     }
 
     /**
      * Prepare view data from invitation.
-     *
-     * @param DigitalInvitation $invitation
-     * @return array
      */
     protected function prepareViewData(DigitalInvitation $invitation): array
     {
@@ -120,11 +110,6 @@ class ExportService
 
     /**
      * Generate HTML for PDF/image export.
-     *
-     * @param DigitalInvitation $invitation
-     * @param array $viewData
-     * @param array $options
-     * @return string
      */
     protected function generateHtmlForExport(DigitalInvitation $invitation, array $viewData, array $options): string
     {
@@ -132,8 +117,8 @@ class ExportService
 
         // Check if a custom export view exists for this template
         $viewName = "exports.templates.{$templateComponent}";
-        
-        if (!View::exists($viewName)) {
+
+        if (! View::exists($viewName)) {
             // Fallback to generic export template
             $viewName = 'exports.invitation';
         }
@@ -147,18 +132,14 @@ class ExportService
 
     /**
      * Generate filename for export.
-     *
-     * @param DigitalInvitation $invitation
-     * @param string $extension
-     * @return string
      */
     protected function generateFilename(DigitalInvitation $invitation, string $extension): string
     {
         $data = $invitation->data;
-        
+
         // Try to create a meaningful filename
         $parts = [];
-        
+
         if ($data->bride_name && $data->groom_name) {
             $parts[] = Str::slug($data->bride_name);
             $parts[] = Str::slug($data->groom_name);
@@ -167,14 +148,12 @@ class ExportService
         }
 
         $filename = implode('-', $parts);
-        
+
         return "invitation-{$filename}.{$extension}";
     }
 
     /**
      * Get default PDF options.
-     *
-     * @return array
      */
     protected function getDefaultPdfOptions(): array
     {
@@ -190,18 +169,15 @@ class ExportService
 
     /**
      * Get PDF metadata for invitation.
-     *
-     * @param DigitalInvitation $invitation
-     * @return array
      */
     public function getPdfMetadata(DigitalInvitation $invitation): array
     {
         $data = $invitation->data;
 
         return [
-            'title' => $data->bride_name && $data->groom_name 
+            'title' => $data->bride_name && $data->groom_name
                 ? "Undangan {$data->bride_name} & {$data->groom_name}"
-                : "Undangan Digital",
+                : 'Undangan Digital',
             'author' => 'Dua Insan Story',
             'subject' => 'Digital Wedding Invitation',
             'keywords' => 'wedding, invitation, digital',
@@ -211,24 +187,22 @@ class ExportService
     /**
      * Validate if invitation can be exported.
      *
-     * @param DigitalInvitation $invitation
-     * @return bool
      * @throws \Exception
      */
     public function validateForExport(DigitalInvitation $invitation): bool
     {
         // Check if invitation has required data
-        if (!$invitation->data) {
+        if (! $invitation->data) {
             throw new \Exception('Invitation data is missing.');
         }
 
         // Check if template exists
-        if (!$invitation->template) {
+        if (! $invitation->template) {
             throw new \Exception('Template not found.');
         }
 
         // Check if template is active
-        if (!$invitation->template->is_active) {
+        if (! $invitation->template->is_active) {
             throw new \Exception('Template is not active.');
         }
 
@@ -237,27 +211,27 @@ class ExportService
 
     /**
      * Get export statistics for invitation.
-     *
-     * @param DigitalInvitation $invitation
-     * @return array
      */
     public function getExportStats(DigitalInvitation $invitation): array
     {
+        // Use dynamic disk for user uploads
+        $disk = config('filesystems.user_uploads');
+
         // Check if exports directory exists
         $exportPath = "exports/{$invitation->id}";
-        $files = Storage::disk('public')->files($exportPath);
+        $files = Storage::disk($disk)->files($exportPath);
 
         return [
             'total_exports' => count($files),
-            'last_export_at' => count($files) > 0 
-                ? Storage::disk('public')->lastModified($files[0]) 
+            'last_export_at' => count($files) > 0
+                ? Storage::disk($disk)->lastModified($files[0])
                 : null,
-            'export_files' => array_map(function ($file) {
+            'export_files' => array_map(function ($file) use ($disk) {
                 return [
                     'path' => $file,
-                    'url' => asset('storage/' . $file),
-                    'size' => Storage::disk('public')->size($file),
-                    'modified_at' => Storage::disk('public')->lastModified($file),
+                    'url' => $disk === 'cloudinary' ? $file : asset('storage/'.$file),
+                    'size' => Storage::disk($disk)->size($file),
+                    'modified_at' => Storage::disk($disk)->lastModified($file),
                 ];
             }, $files),
         ];

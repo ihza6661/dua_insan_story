@@ -8,6 +8,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class CheckoutService
@@ -49,7 +50,8 @@ class CheckoutService
             // Handle prewedding photo upload
             $photoPath = null;
             if ($request->hasFile('prewedding_photo')) {
-                $photoPath = $request->file('prewedding_photo')->store('prewedding-photos', 'public');
+                $disk = config('filesystems.user_uploads');
+                $photoPath = Storage::disk($disk)->put('prewedding-photos', $request->file('prewedding_photo'));
             }
 
             // Handle promo code validation and discount calculation

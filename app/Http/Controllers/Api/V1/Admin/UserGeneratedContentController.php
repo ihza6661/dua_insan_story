@@ -74,7 +74,7 @@ class UserGeneratedContentController extends Controller
     public function toggleFeatured(Request $request, UserGeneratedContent $ugc)
     {
         $ugc->update([
-            'is_featured' => !$ugc->is_featured,
+            'is_featured' => ! $ugc->is_featured,
         ]);
 
         return response()->json([
@@ -88,9 +88,12 @@ class UserGeneratedContentController extends Controller
      */
     public function destroy(UserGeneratedContent $ugc)
     {
+        // Use dynamic disk for user uploads
+        $disk = config('filesystems.user_uploads');
+
         // Delete image from storage
-        if ($ugc->image_path && Storage::disk('public')->exists($ugc->image_path)) {
-            Storage::disk('public')->delete($ugc->image_path);
+        if ($ugc->image_path && Storage::disk($disk)->exists($ugc->image_path)) {
+            Storage::disk($disk)->delete($ugc->image_path);
         }
 
         $ugc->delete();
@@ -100,4 +103,3 @@ class UserGeneratedContentController extends Controller
         ]);
     }
 }
-

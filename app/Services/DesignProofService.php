@@ -29,12 +29,13 @@ class DesignProofService
         // Get the next version number
         $version = $orderItem->designProofs()->max('version') + 1;
 
-        // Store the file
-        $path = $file->store('design-proofs', 'public');
+        // Store the file using dynamic disk
+        $disk = config('filesystems.user_uploads');
+        $path = Storage::disk($disk)->put('design-proofs', $file);
 
-        // Generate thumbnail if it's an image
+        // Generate thumbnail if it's an image (only for local storage)
         $thumbnailPath = null;
-        if (str_starts_with($file->getMimeType(), 'image/')) {
+        if ($disk === 'public' && str_starts_with($file->getMimeType(), 'image/')) {
             $thumbnailPath = $this->generateThumbnail($path);
         }
 
@@ -282,12 +283,15 @@ class DesignProofService
      */
     public function deleteDesignProof(DesignProof $designProof): bool
     {
+        // Use dynamic disk for user uploads
+        $disk = config('filesystems.user_uploads');
+
         // Delete files from storage
         if ($designProof->file_url) {
-            Storage::disk('public')->delete($designProof->file_url);
+            Storage::disk($disk)->delete($designProof->file_url);
         }
         if ($designProof->thumbnail_url) {
-            Storage::disk('public')->delete($designProof->thumbnail_url);
+            Storage::disk($disk)->delete($designProof->thumbnail_url);
         }
 
         return $designProof->delete();

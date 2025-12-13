@@ -61,9 +61,10 @@ class UserGeneratedContentController extends Controller
             ], 422);
         }
 
-        // Upload image
+        // Upload image using dynamic disk (Cloudinary in production, local in dev)
         $image = $request->file('image');
-        $path = $image->store('ugc', 'public');
+        $disk = config('filesystems.user_uploads');
+        $path = Storage::disk($disk)->put('ugc', $image);
 
         // Create UGC record
         $ugc = UserGeneratedContent::create([
@@ -120,9 +121,12 @@ class UserGeneratedContentController extends Controller
             ], 403);
         }
 
+        // Use dynamic disk for user uploads
+        $disk = config('filesystems.user_uploads');
+
         // Delete image from storage
-        if ($ugc->image_path && Storage::disk('public')->exists($ugc->image_path)) {
-            Storage::disk('public')->delete($ugc->image_path);
+        if ($ugc->image_path && Storage::disk($disk)->exists($ugc->image_path)) {
+            Storage::disk($disk)->delete($ugc->image_path);
         }
 
         $ugc->delete();
@@ -132,4 +136,3 @@ class UserGeneratedContentController extends Controller
         ]);
     }
 }
-

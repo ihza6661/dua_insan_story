@@ -12,7 +12,8 @@ class GalleryItemService
     {
         if (isset($data['file']) && $data['file'] instanceof UploadedFile) {
             $file = $data['file'];
-            $data['file_path'] = $file->store('gallery', 'public');
+            $disk = config('filesystems.user_uploads');
+            $data['file_path'] = Storage::disk($disk)->put('gallery', $file);
 
             $mimeType = $file->getMimeType();
             if (str_starts_with($mimeType, 'image/')) {
@@ -29,12 +30,14 @@ class GalleryItemService
     public function updateItem(GalleryItem $galleryItem, array $data): GalleryItem
     {
         if (isset($data['file']) && $data['file'] instanceof UploadedFile) {
+            $disk = config('filesystems.user_uploads');
+
             if ($galleryItem->file_path) {
-                Storage::disk('public')->delete($galleryItem->file_path);
+                Storage::disk($disk)->delete($galleryItem->file_path);
             }
 
             $file = $data['file'];
-            $data['file_path'] = $file->store('gallery', 'public');
+            $data['file_path'] = Storage::disk($disk)->put('gallery', $file);
 
             $mimeType = $file->getMimeType();
             if (str_starts_with($mimeType, 'image/')) {

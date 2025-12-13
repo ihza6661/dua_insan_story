@@ -28,14 +28,27 @@ class GalleryItem extends Model
 
     public function getFileUrlAttribute(): ?string
     {
-        return $this->file_path ? Storage::disk('public')->url($this->file_path) : null;
+        if (! $this->file_path) {
+            return null;
+        }
+
+        $disk = config('filesystems.user_uploads');
+
+        if ($disk === 'cloudinary') {
+            // Cloudinary paths are already full URLs
+            return $this->file_path;
+        }
+
+        // For local storage
+        return asset('storage/'.$this->file_path);
     }
 
     protected static function booted(): void
     {
         static::deleting(function (GalleryItem $galleryItem) {
             if ($galleryItem->file_path) {
-                Storage::disk('public')->delete($galleryItem->file_path);
+                $disk = config('filesystems.user_uploads');
+                Storage::disk($disk)->delete($galleryItem->file_path);
             }
         });
     }

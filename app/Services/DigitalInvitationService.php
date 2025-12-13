@@ -244,14 +244,21 @@ class DigitalInvitationService
     {
         $invitation = DigitalInvitation::findOrFail($invitationId);
 
-        // Store photo in invitations/{id}/ directory (fixed interpolation)
-        $path = $file->store("invitations/{$invitationId}", 'public');
+        // Use dynamic disk for user uploads (Cloudinary in production, local in dev)
+        $disk = config('filesystems.user_uploads');
+        $path = Storage::disk($disk)->put("invitations/{$invitationId}", $file);
 
         // Add to data JSON array with metadata
         $data = $invitation->data;
         $data->addPhoto($path, $photoType);
 
-        // Return full URL
+        // Return full URL (works for both local storage and Cloudinary)
+        if ($disk === 'cloudinary') {
+            // Cloudinary driver returns full URL from put()
+            return $path;
+        }
+
+        // For local storage, use asset helper
         return asset('storage/'.$path);
     }
 
@@ -268,8 +275,11 @@ class DigitalInvitationService
             return false;
         }
 
+        // Use dynamic disk for user uploads
+        $disk = config('filesystems.user_uploads');
+
         // Delete file from storage
-        Storage::disk('public')->delete($photos[$photoIndex]);
+        Storage::disk($disk)->delete($photos[$photoIndex]);
 
         // Remove from JSON array
         $data->removePhoto($photoIndex);

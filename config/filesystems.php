@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => env('FILESYSTEM_DISK', 'public'),
 
     /*
     |--------------------------------------------------------------------------
@@ -41,10 +41,20 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('ASSET_URL', env('APP_URL')).'/storage',
+            'url' => env('APP_URL').'/media',  // Use /media route
             'visibility' => 'public',
             'throw' => true,
             'report' => true,
+        ],
+
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+            'api_key' => env('CLOUDINARY_API_KEY'),
+            'api_secret' => env('CLOUDINARY_API_SECRET'),
+            'url' => [
+                'secure' => env('CLOUDINARY_SECURE_URL', true),
+            ],
         ],
 
         's3' => [
@@ -75,6 +85,20 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
+        public_path('media') => storage_path('app/public'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Uploads Disk
+    |--------------------------------------------------------------------------
+    |
+    | This disk is used for user-generated content (invitations, UGC, exports).
+    | In production (Heroku), this should be set to 'cloudinary' or 's3'.
+    | In development, this can be 'public' for local storage.
+    |
+    */
+
+    'user_uploads' => env('FILESYSTEM_DISK_UPLOADS', 'cloudinary'),
 
 ];
