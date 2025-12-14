@@ -17,7 +17,8 @@
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
         "mews/purifier": "^3.4",
-        "midtrans/midtrans-php": "^2.6"
+        "midtrans/midtrans-php": "^2.6",
+        "predis/predis": "^2.2"
     },
     "require-dev": {
         "laravel/pail": "^1.2.2",
