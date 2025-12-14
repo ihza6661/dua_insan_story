@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Admin\SettingController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CartItemController;
+use App\Http\Controllers\Api\V1\CartRecoveryController;
 use App\Http\Controllers\Api\V1\CheckoutController;
 use App\Http\Controllers\Api\V1\Customer;
 use App\Http\Controllers\Api\V1\OrderController;
@@ -34,6 +35,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/guest-checkout', [CheckoutController::class, 'store']);
+
+    // Cart Recovery (public, uses token instead of auth)
+    Route::get('/cart/recover/{token}', [CartRecoveryController::class, 'show']);
+    Route::post('/cart/recover/{token}', [CartRecoveryController::class, 'recover'])->middleware('auth.optional');
 
     Route::get('/rajaongkir/provinces', [RajaOngkirController::class, 'getProvinces']);
     Route::get('/rajaongkir/cities', [RajaOngkirController::class, 'getCities']);

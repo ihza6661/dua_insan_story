@@ -30,3 +30,25 @@ Schedule::command('invitations:send-reminders')
     ->onFailure(function () {
         Log::error('Failed to send scheduled activation reminders');
     });
+
+// Detect abandoned carts every hour (carts not updated for 1+ hours)
+Schedule::command('carts:detect-abandoned --threshold=1')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        Log::info('Abandoned carts detected successfully');
+    })
+    ->onFailure(function () {
+        Log::error('Failed to detect abandoned carts');
+    });
+
+// Process abandoned cart email reminders every 15 minutes
+Schedule::command('carts:process-abandoned')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        Log::info('Abandoned cart reminders processed successfully');
+    })
+    ->onFailure(function () {
+        Log::error('Failed to process abandoned cart reminders');
+    });
