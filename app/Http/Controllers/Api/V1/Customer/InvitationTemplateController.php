@@ -13,14 +13,18 @@ class InvitationTemplateController extends Controller
      */
     public function index(): JsonResponse
     {
-        $templates = InvitationTemplate::with('products')
+        $templates = InvitationTemplate::with('products.variants')
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
             ->map(function ($template) {
+                $product = $template->products()->where('product_type', 'digital')->first();
+                $variant = $product?->variants->first();
+
                 return [
                     'id' => $template->id,
-                    'product_id' => $template->products()->where('product_type', 'digital')->first()?->id,
+                    'product_id' => $product?->id,
+                    'variant_id' => $variant?->id,
                     'slug' => $template->slug,
                     'name' => $template->name,
                     'description' => $template->description,
@@ -42,7 +46,7 @@ class InvitationTemplateController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $template = InvitationTemplate::with('products')
+        $template = InvitationTemplate::with('products.variants')
             ->where('slug', $slug)
             ->where('is_active', true)
             ->first();
@@ -53,11 +57,15 @@ class InvitationTemplateController extends Controller
             ], 404);
         }
 
+        $product = $template->products()->where('product_type', 'digital')->first();
+        $variant = $product?->variants->first();
+
         return response()->json([
             'message' => 'Template retrieved successfully',
             'data' => [
                 'id' => $template->id,
-                'product_id' => $template->products()->where('product_type', 'digital')->first()?->id,
+                'product_id' => $product?->id,
+                'variant_id' => $variant?->id,
                 'slug' => $template->slug,
                 'name' => $template->name,
                 'description' => $template->description,
