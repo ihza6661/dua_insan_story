@@ -87,6 +87,10 @@ Route::prefix('v1')->group(function () {
         Route::put('/user', [ProfileController::class, 'update']);
         Route::post('/user/change-password', [ProfileController::class, 'changePassword']);
 
+        // Address management routes
+        Route::apiResource('addresses', Customer\AddressController::class);
+        Route::post('/addresses/{address}/set-default', [Customer\AddressController::class, 'setDefault']);
+
         // Rute untuk mengelola pesanan pengguna
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);

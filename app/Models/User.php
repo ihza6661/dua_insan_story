@@ -46,6 +46,22 @@ class User extends Authenticatable
         return $this->hasOne(Address::class);
     }
 
+    /**
+     * Get all addresses for the user
+     */
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    /**
+     * Get the default address for the user
+     */
+    public function defaultAddress()
+    {
+        return $this->hasOne(Address::class)->where('is_default', true);
+    }
+
     public function reviews()
     {
         return $this->hasMany(Review::class, 'customer_id');

@@ -16,7 +16,9 @@ class StoreRequest extends FormRequest
         $isDigitalOnly = $this->input('is_digital_only', false);
 
         return [
-            'shipping_address' => [$isDigitalOnly ? 'nullable' : 'required', 'string', 'max:1000'],
+            // Support both saved address (address_id) and manual entry (shipping_address)
+            'address_id' => ['nullable', 'integer', 'exists:addresses,id'],
+            'shipping_address' => [$isDigitalOnly ? 'nullable' : 'required_without:address_id', 'string', 'max:1000'],
 
             'bride_full_name' => ['required', 'string', 'max:255'],
             'groom_full_name' => ['required', 'string', 'max:255'],
