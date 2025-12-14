@@ -24,7 +24,7 @@ class InvitationTemplateController extends Controller
                     'slug' => $template->slug,
                     'name' => $template->name,
                     'description' => $template->description,
-                    'thumbnail_image' => $template->thumbnail_image,
+                    'thumbnail_image' => url('media/'.$template->thumbnail_image),
                     'price' => $template->price,
                     'template_component' => $template->template_component,
                     'usage_count' => $template->usage_count,
@@ -61,7 +61,7 @@ class InvitationTemplateController extends Controller
                 'slug' => $template->slug,
                 'name' => $template->name,
                 'description' => $template->description,
-                'thumbnail_image' => $template->thumbnail_image,
+                'thumbnail_image' => url('media/'.$template->thumbnail_image),
                 'price' => $template->price,
                 'template_component' => $template->template_component,
                 'usage_count' => $template->usage_count,
@@ -72,7 +72,7 @@ class InvitationTemplateController extends Controller
 
     /**
      * Get customization fields for a template.
-     * 
+     *
      * Returns only active fields ordered by display_order for customers to fill.
      */
     public function getFields(int $templateId): JsonResponse
