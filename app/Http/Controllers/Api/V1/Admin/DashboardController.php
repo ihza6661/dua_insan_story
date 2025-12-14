@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -20,8 +20,8 @@ class DashboardController extends Controller
         // Cache key based on date range
         $cacheKey = "dashboard_stats_{$dateFrom}_{$dateTo}";
 
-        // Cache basic stats for 10 minutes
-        $stats = Cache::remember($cacheKey, 600, function () use ($dateFrom, $dateTo) {
+        // Cache basic stats for 10 minutes with tags
+        $stats = CacheService::remember([CacheService::TAG_DASHBOARD, CacheService::TAG_ORDERS], $cacheKey, 600, function () use ($dateFrom, $dateTo) {
             $ordersQuery = Order::whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
 
             $totalCustomers = User::where('role', 'customer')->count();
@@ -62,9 +62,9 @@ class DashboardController extends Controller
         $avgOrderValue = $stats['avg_order_value'];
         $cancellationRate = $stats['cancellation_rate'];
 
-        // Revenue trend (daily breakdown) - cached for 10 minutes
+        // Revenue trend (daily breakdown) - cached for 10 minutes with tags
         $revenueTrendCacheKey = "dashboard_revenue_trend_{$dateFrom}_{$dateTo}";
-        $revenueTrend = Cache::remember($revenueTrendCacheKey, 600, function () use ($dateFrom, $dateTo) {
+        $revenueTrend = CacheService::remember([CacheService::TAG_DASHBOARD, CacheService::TAG_ORDERS], $revenueTrendCacheKey, 600, function () use ($dateFrom, $dateTo) {
             return Order::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('SUM(total_amount) as revenue'),
@@ -77,9 +77,9 @@ class DashboardController extends Controller
                 ->get();
         });
 
-        // Order status breakdown - cached for 10 minutes
+        // Order status breakdown - cached for 10 minutes with tags
         $statusBreakdownCacheKey = "dashboard_status_breakdown_{$dateFrom}_{$dateTo}";
-        $statusBreakdown = Cache::remember($statusBreakdownCacheKey, 600, function () use ($dateFrom, $dateTo) {
+        $statusBreakdown = CacheService::remember([CacheService::TAG_DASHBOARD, CacheService::TAG_ORDERS], $statusBreakdownCacheKey, 600, function () use ($dateFrom, $dateTo) {
             return Order::select('order_status', DB::raw('COUNT(*) as count'))
                 ->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59'])
                 ->groupBy('order_status')
@@ -106,9 +106,9 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Top selling products (cached for 1 hour)
+        // Top selling products (cached for 1 hour with tags)
         $topProductsCacheKey = "dashboard_top_products_{$dateFrom}_{$dateTo}";
-        $topProducts = Cache::remember($topProductsCacheKey, 3600, function () use ($dateFrom, $dateTo) {
+        $topProducts = CacheService::remember([CacheService::TAG_DASHBOARD, CacheService::TAG_ORDERS, CacheService::TAG_PRODUCTS], $topProductsCacheKey, 3600, function () use ($dateFrom, $dateTo) {
             return DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->join('products', 'order_items.product_id', '=', 'products.id')
@@ -126,9 +126,9 @@ class DashboardController extends Controller
                 ->get();
         });
 
-        // Low stock products (stock < 10) - cached for 30 minutes
+        // Low stock products (stock < 10) - cached for 30 minutes with tags
         $lowStockCacheKey = 'dashboard_low_stock_products';
-        $lowStockProducts = Cache::remember($lowStockCacheKey, 1800, function () {
+        $lowStockProducts = CacheService::remember([CacheService::TAG_DASHBOARD, CacheService::TAG_PRODUCTS], $lowStockCacheKey, 1800, function () {
             return DB::table('product_variants')
                 ->join('products', 'product_variants.product_id', '=', 'products.id')
                 ->select(

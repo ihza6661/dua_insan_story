@@ -7,11 +7,11 @@ use App\Http\Requests\Api\V1\Admin\Review\AdminResponseRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Review;
 use App\Models\ReviewImage;
+use App\Services\CacheService;
 use App\Services\ReviewService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -81,7 +81,7 @@ class ReviewController extends Controller
     {
         try {
             $updatedReview = $this->reviewService->approveReview($review);
-            Cache::forget('review_statistics');
+            CacheService::invalidateReviews();
 
             return response()->json([
                 'message' => 'Ulasan berhasil disetujui.',
@@ -102,7 +102,7 @@ class ReviewController extends Controller
     {
         try {
             $updatedReview = $this->reviewService->rejectReview($review);
-            Cache::forget('review_statistics');
+            CacheService::invalidateReviews();
 
             return response()->json([
                 'message' => 'Ulasan berhasil ditolak.',
@@ -123,7 +123,7 @@ class ReviewController extends Controller
     {
         try {
             $updatedReview = $this->reviewService->toggleFeatured($review);
-            Cache::forget('review_statistics');
+            CacheService::invalidateReviews();
 
             $message = $updatedReview->is_featured
                 ? 'Ulasan berhasil ditandai sebagai unggulan.'
@@ -171,7 +171,7 @@ class ReviewController extends Controller
     {
         try {
             $this->reviewService->deleteReviewByAdmin($review);
-            Cache::forget('review_statistics');
+            CacheService::invalidateReviews();
 
             return response()->json([
                 'message' => 'Ulasan berhasil dihapus.',
@@ -211,7 +211,7 @@ class ReviewController extends Controller
     public function statistics(): JsonResponse
     {
         try {
-            $stats = Cache::remember('review_statistics', 300, function () {
+            $stats = CacheService::remember(CacheService::TAG_REVIEWS, 'review_statistics', 300, function () {
                 // Single optimized query with all aggregations
                 $result = DB::table('reviews')
                     ->select([

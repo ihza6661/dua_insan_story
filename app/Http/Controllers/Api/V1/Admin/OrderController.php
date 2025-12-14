@@ -10,9 +10,9 @@ use App\Mail\OrderShipped;
 use App\Mail\OrderStatusChanged;
 use App\Models\Order;
 use App\Repositories\Contracts\OrderRepositoryInterface;
+use App\Services\CacheService;
 use App\Services\NotificationService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -106,8 +106,8 @@ class OrderController extends Controller
 
         $order = $this->orderRepository->updateStatus($order, $newStatus);
 
-        // Invalidate dashboard caches when order status changes
-        Cache::flush(); // Clear all caches since dashboard keys include dynamic date ranges
+        // Invalidate order-related caches (dashboard, orders list)
+        CacheService::invalidateOrders();
 
         // Load customer relationship for email
         $order->load(['customer', 'items.product', 'invitationDetail']);
@@ -170,7 +170,7 @@ class OrderController extends Controller
                 }
 
                 $order = $this->orderRepository->updateStatus($order, $newStatus);
-                Cache::flush(); // Clear dashboard caches
+                CacheService::invalidateOrders(); // Invalidate order caches
                 $updatedCount++;
 
                 // Send appropriate email based on status change

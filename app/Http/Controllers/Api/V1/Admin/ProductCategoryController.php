@@ -7,20 +7,30 @@ use App\Http\Requests\Api\V1\Admin\ProductCategory\StoreRequest;
 use App\Http\Requests\Api\V1\Admin\ProductCategory\UpdateRequest;
 use App\Http\Resources\AdminProductCategoryResource;
 use App\Models\ProductCategory;
+use App\Services\CacheService;
 use App\Services\ProductCategoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 class ProductCategoryController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
         $perPage = request('per_page', 20);
+        $page = request('page', 1);
 
-        $categories = ProductCategory::withCount('products')
-            ->latest()
-            ->paginate($perPage);
+        // Cache category listing
+        $cacheKey = "categories.admin.list.pp{$perPage}.p{$page}";
+        $categories = CacheService::remember(
+            CacheService::TAG_CATEGORIES,
+            $cacheKey,
+            CacheService::TTL_LONG,
+            function () use ($perPage) {
+                return ProductCategory::withCount('products')
+                    ->latest()
+                    ->paginate($perPage);
+            }
+        );
 
         return AdminProductCategoryResource::collection($categories);
     }
@@ -29,8 +39,8 @@ class ProductCategoryController extends Controller
     {
         $category = $categoryService->createCategory($request->validated());
 
-        // Clear categories cache
-        Cache::forget('product_categories_list');
+        // Invalidate categories cache
+        CacheService::invalidateCategories();
 
         return response()->json([
             'message' => 'Kategori produk berhasil dibuat.',
@@ -47,8 +57,8 @@ class ProductCategoryController extends Controller
     {
         $updatedCategory = $categoryService->updateCategory($productCategory, $request->validated());
 
-        // Clear categories cache
-        Cache::forget('product_categories_list');
+        // Invalidate categories cache
+        CacheService::invalidateCategories();
 
         return response()->json([
             'message' => 'Kategori produk berhasil diperbarui.',
@@ -66,8 +76,8 @@ class ProductCategoryController extends Controller
 
         $productCategory->delete();
 
-        // Clear categories cache
-        Cache::forget('product_categories_list');
+        // Invalidate categories cache
+        CacheService::invalidateCategories();
 
         return response()->json([
             'message' => 'Kategori produk berhasil dihapus.',

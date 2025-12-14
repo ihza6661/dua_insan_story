@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\CacheService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -80,43 +81,55 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function getPaginatedActiveProducts(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
-        $query = $this->model->with(['category', 'variants.images', 'template'])
-            ->active()
-            ->when($filters['search'] ?? null, function ($query, $searchTerm) {
-                $query->search($searchTerm);
-            })
-            ->when($filters['category_slug'] ?? null, function ($query, $categorySlug) {
-                $query->byCategory($categorySlug);
-            })
-            ->when($filters['min_price'] ?? null, function ($query, $minPrice) {
-                $query->whereHas('variants', function ($subQuery) use ($minPrice) {
-                    $subQuery->where('price', '>=', $minPrice);
-                });
-            })
-            ->when($filters['max_price'] ?? null, function ($query, $maxPrice) {
-                $query->whereHas('variants', function ($subQuery) use ($maxPrice) {
-                    $subQuery->where('price', '<=', $maxPrice);
-                });
-            });
+        // Generate cache key based on filters
+        $page = request()->get('page', 1);
+        $cacheKey = CacheService::productListingKey($filters, $perPage) . ".p{$page}";
 
-        // Apply sorting
-        $sort = $filters['sort'] ?? 'latest';
-        switch ($sort) {
-            case 'price_asc':
-            case 'price_desc':
-                $query->addSelect([
-                    'min_price' => ProductVariant::selectRaw('MIN(price)')
-                        ->whereColumn('product_id', 'products.id')
-                        ->take(1),
-                ])->orderBy('min_price', $sort === 'price_asc' ? 'asc' : 'desc');
-                break;
-            case 'latest':
-            default:
-                $query->latest();
-                break;
-        }
+        // Cache for 30 minutes
+        return CacheService::remember(
+            [CacheService::TAG_PRODUCTS],
+            $cacheKey,
+            CacheService::TTL_MEDIUM,
+            function () use ($filters, $perPage) {
+                $query = $this->model->with(['category', 'variants.images', 'template'])
+                    ->active()
+                    ->when($filters['search'] ?? null, function ($query, $searchTerm) {
+                        $query->search($searchTerm);
+                    })
+                    ->when($filters['category_slug'] ?? null, function ($query, $categorySlug) {
+                        $query->byCategory($categorySlug);
+                    })
+                    ->when($filters['min_price'] ?? null, function ($query, $minPrice) {
+                        $query->whereHas('variants', function ($subQuery) use ($minPrice) {
+                            $subQuery->where('price', '>=', $minPrice);
+                        });
+                    })
+                    ->when($filters['max_price'] ?? null, function ($query, $maxPrice) {
+                        $query->whereHas('variants', function ($subQuery) use ($maxPrice) {
+                            $subQuery->where('price', '<=', $maxPrice);
+                        });
+                    });
 
-        return $query->paginate($perPage);
+                // Apply sorting
+                $sort = $filters['sort'] ?? 'latest';
+                switch ($sort) {
+                    case 'price_asc':
+                    case 'price_desc':
+                        $query->addSelect([
+                            'min_price' => ProductVariant::selectRaw('MIN(price)')
+                                ->whereColumn('product_id', 'products.id')
+                                ->take(1),
+                        ])->orderBy('min_price', $sort === 'price_asc' ? 'asc' : 'desc');
+                        break;
+                    case 'latest':
+                    default:
+                        $query->latest();
+                        break;
+                }
+
+                return $query->paginate($perPage);
+            }
+        );
     }
 
     /**
