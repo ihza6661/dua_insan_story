@@ -21,16 +21,22 @@ return new class extends Migration
             'refunded',
         ])->update(['status' => 'pending']);
 
-        // Change status from string to enum
-        Schema::table('payments', function (Blueprint $table) {
-            $table->enum('status', [
-                'pending',
-                'paid',
-                'failed',
-                'cancelled',
-                'refunded',
-            ])->default('pending')->change();
-        });
+        $driver = DB::connection()->getDriverName();
+
+        // Only apply enum constraint on MySQL
+        // PostgreSQL enum handling is complex and not needed with application-level validation
+        if ($driver === 'mysql') {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->enum('status', [
+                    'pending',
+                    'paid',
+                    'failed',
+                    'cancelled',
+                    'refunded',
+                ])->default('pending')->change();
+            });
+        }
+        // For PostgreSQL and other databases: rely on application validation via model constants
     }
 
     /**

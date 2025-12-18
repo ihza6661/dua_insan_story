@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -177,7 +178,7 @@ class ComprehensiveOrderSeeder extends Seeder
                 'order_number' => 'ORD-' . strtoupper(Str::random(10)),
                 'customer_id' => $demoCustomer->id,
                 'order_status' => $status,
-                'payment_status' => 'settlement',
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
                 'subtotal_amount' => $subtotal,
                 'shipping_cost' => $shippingCost,
                 'shipping_method' => $shippingService,
@@ -213,7 +214,7 @@ class ComprehensiveOrderSeeder extends Seeder
                 'payment_type' => 'full',
                 'payment_gateway' => 'midtrans',
                 'amount' => $totalAmount,
-                'status' => 'settlement',
+                'status' => Payment::STATUS_PAID,
                 'transaction_id' => 'TRX-' . strtoupper(Str::random(16)),
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
@@ -413,7 +414,7 @@ class ComprehensiveOrderSeeder extends Seeder
             'order_number' => 'ORD-' . strtoupper(Str::random(10)),
             'customer_id' => $customer->id,
             'order_status' => Order::STATUS_PROCESSING,
-            'payment_status' => 'settlement',
+            'payment_status' => Order::PAYMENT_STATUS_PAID,
             'subtotal_amount' => 0,
             'shipping_cost' => $shippingCost,
             'shipping_method' => 'JNE REG',
@@ -458,7 +459,7 @@ class ComprehensiveOrderSeeder extends Seeder
             'payment_type' => 'full',
             'payment_gateway' => 'midtrans',
             'amount' => $subtotal + $shippingCost,
-            'status' => 'settlement',
+            'status' => Payment::STATUS_PAID,
             'transaction_id' => 'TRX-' . strtoupper(Str::random(16)),
             'created_at' => now()->subDays(3),
             'updated_at' => now()->subDays(3),
@@ -485,8 +486,8 @@ class ComprehensiveOrderSeeder extends Seeder
 
         // Determine payment status
         $paymentStatus = in_array($status, [Order::STATUS_PENDING_PAYMENT, Order::STATUS_CANCELLED]) 
-            ? 'pending' 
-            : 'settlement';
+            ? Order::PAYMENT_STATUS_PENDING
+            : Order::PAYMENT_STATUS_PAID;
 
         // Create order
         $order = new Order([
@@ -593,56 +594,56 @@ class ComprehensiveOrderSeeder extends Seeder
         return match ($scenario) {
             'completed' => [
                 'order_status' => Order::STATUS_COMPLETED,
-                'payment_status' => 'settlement',
-                'payment_db_status' => 'settlement',
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
+                'payment_db_status' => Payment::STATUS_PAID,
                 'shipping_method' => 'JNE REG',
                 'created_at' => $created,
                 'updated_at' => $updated,
             ],
             'shipped' => [
                 'order_status' => Order::STATUS_SHIPPED,
-                'payment_status' => 'settlement',
-                'payment_db_status' => 'settlement',
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
+                'payment_db_status' => Payment::STATUS_PAID,
                 'shipping_method' => 'JNE YES',
                 'created_at' => $created,
                 'updated_at' => $updated,
             ],
             'processing' => [
                 'order_status' => Order::STATUS_PROCESSING,
-                'payment_status' => 'settlement',
-                'payment_db_status' => 'settlement',
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
+                'payment_db_status' => Payment::STATUS_PAID,
                 'shipping_method' => 'JNE REG',
                 'created_at' => $created,
                 'updated_at' => $updated,
             ],
             'large_order' => [
                 'order_status' => Order::STATUS_IN_PRODUCTION,
-                'payment_status' => 'settlement',
-                'payment_db_status' => 'settlement',
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
+                'payment_db_status' => Payment::STATUS_PAID,
                 'shipping_method' => 'Cargo',
                 'created_at' => $created,
                 'updated_at' => $updated,
             ],
             'pending' => [
                 'order_status' => Order::STATUS_PENDING_PAYMENT,
-                'payment_status' => 'pending',
-                'payment_db_status' => 'pending',
+                'payment_status' => Order::PAYMENT_STATUS_PENDING,
+                'payment_db_status' => Payment::STATUS_PENDING,
                 'shipping_method' => 'JNE REG',
                 'created_at' => $created,
                 'updated_at' => $updated,
             ],
             'cancelled' => [
                 'order_status' => Order::STATUS_CANCELLED,
-                'payment_status' => 'cancel',
-                'payment_db_status' => 'cancel',
+                'payment_status' => Order::PAYMENT_STATUS_CANCELLED,
+                'payment_db_status' => Payment::STATUS_CANCELLED,
                 'shipping_method' => 'JNE REG',
                 'created_at' => $created,
                 'updated_at' => $updated,
             ],
             default => [
                 'order_status' => Order::STATUS_PENDING_PAYMENT,
-                'payment_status' => 'pending',
-                'payment_db_status' => 'pending',
+                'payment_status' => Order::PAYMENT_STATUS_PENDING,
+                'payment_db_status' => Payment::STATUS_PENDING,
                 'shipping_method' => 'JNE REG',
                 'created_at' => $created,
                 'updated_at' => $updated,
