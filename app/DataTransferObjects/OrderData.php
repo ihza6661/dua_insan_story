@@ -26,6 +26,7 @@ class OrderData
         public readonly ?int $promoCodeId = null,
         public readonly float $discountAmount = 0,
         public readonly float $subtotalAmount = 0,
+        public readonly ?string $paymentOption = null,
     ) {}
 
     /**
@@ -66,6 +67,7 @@ class OrderData
             'shipping_service' => $this->shippingService,
             'courier' => $this->courier,
             'payment_gateway' => $this->paymentGateway,
+            'payment_option' => $this->paymentOption,
         ];
     }
 }

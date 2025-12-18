@@ -157,7 +157,7 @@ class WebhookController extends Controller
 
     private function handleSuccessfulPayment(Order $order, Payment $payment, array $payload): void
     {
-        if ($payment->status === 'paid') {
+        if ($payment->status === Payment::STATUS_PAID) {
             Log::info('Midtrans Webhook: Payment already processed, skipping duplicate.', [
                 'payment_id' => $payment->id,
             ]);
@@ -165,11 +165,11 @@ class WebhookController extends Controller
             return;
         }
 
-        $this->updatePaymentStatus($payment, 'paid', $payload);
+        $this->updatePaymentStatus($payment, Payment::STATUS_PAID, $payload);
 
-        $isDownPayment = $payment->payment_type === 'dp';
-        $orderStatus = $isDownPayment ? 'Partially Paid' : 'Paid';
-        $paymentStatus = $isDownPayment ? 'partially_paid' : 'paid';
+        $isDownPayment = $payment->payment_type === Payment::TYPE_DOWN_PAYMENT;
+        $orderStatus = $isDownPayment ? Order::STATUS_PARTIALLY_PAID : Order::STATUS_PAID;
+        $paymentStatus = $isDownPayment ? Order::PAYMENT_STATUS_PARTIALLY_PAID : Order::PAYMENT_STATUS_PAID;
 
         $this->updateOrderStatus($order, $orderStatus, $paymentStatus);
 
@@ -186,7 +186,7 @@ class WebhookController extends Controller
 
         // Auto-create and activate digital invitations for full/final payments
         // Note: Down payments are not supported for digital products
-        if (in_array($payment->payment_type, ['full', 'final'])) {
+        if (in_array($payment->payment_type, [Payment::TYPE_FULL, Payment::TYPE_FINAL])) {
             try {
                 // Dispatch job to process digital invitations asynchronously
                 // This prevents webhook timeout for orders with multiple digital products

@@ -160,7 +160,7 @@ class OrderController extends Controller
         }
 
         // Only allow invoice download for paid or completed orders
-        if (! in_array($order->payment_status, ['paid', 'partially_paid'])) {
+        if (! in_array($order->payment_status, [Order::PAYMENT_STATUS_PAID, Order::PAYMENT_STATUS_PARTIALLY_PAID])) {
             abort(400, 'Invoice can only be downloaded for paid orders.');
         }
 
@@ -170,6 +170,7 @@ class OrderController extends Controller
             'items.variant.images',
             'customer',
             'invitationDetail',
+            'payments',
         ]);
 
         // Eager load amount_paid for performance

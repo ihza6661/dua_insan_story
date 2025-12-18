@@ -34,7 +34,8 @@ class OrderCreationService
         ?string $shippingService = null,
         ?string $courier = null,
         ?int $promoCodeId = null,
-        float $discountAmount = 0
+        float $discountAmount = 0,
+        ?string $paymentOption = null
     ): Order {
         $cartTotal = $cart->items->sum(fn ($item) => $item->quantity * $item->unit_price);
         $subtotalAmount = $cartTotal;
@@ -52,6 +53,7 @@ class OrderCreationService
             shippingService: $shippingService,
             courier: $courier,
             promoCodeId: $promoCodeId,
+            paymentOption: $paymentOption,
         );
 
         return $this->orderRepository->create($orderData->toArray());

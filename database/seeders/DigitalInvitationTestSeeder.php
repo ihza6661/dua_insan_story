@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\InvitationTemplate;
 use App\Models\DigitalInvitation;
 use App\Models\DigitalInvitationData;
@@ -153,15 +156,45 @@ class DigitalInvitationTestSeeder extends Seeder
                 'shipping_method' => null,
                 'shipping_address' => null,
                 'payment_gateway' => 'midtrans',
-                'payment_status' => 'PAID',
-                'order_status' => 'PAID',
+                'payment_status' => Order::PAYMENT_STATUS_PAID,
+                'payment_option' => Payment::TYPE_FULL,
+                'order_status' => 'Completed',
                 'snap_token' => 'test-' . Str::random(32),
+            ]);
+
+            // Create Order Item
+            $variant = ProductVariant::where('product_id', $data['product']->id)->first();
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $data['product']->id,
+                'product_variant_id' => $variant ? $variant->id : null,
+                'quantity' => 1,
+                'unit_price' => $data['product']->base_price,
+                'sub_total' => $data['product']->base_price,
+            ]);
+
+            // Create Payment Record
+            Payment::create([
+                'order_id' => $order->id,
+                'transaction_id' => 'DIGITAL-SEED-' . $order->order_number,
+                'payment_gateway' => 'midtrans',
+                'amount' => $data['product']->base_price,
+                'status' => Payment::STATUS_PAID,
+                'payment_type' => Payment::TYPE_FULL,
+                'raw_response' => json_encode([
+                    'note' => 'Seeded digital invitation payment',
+                    'seeded_at' => now()->toISOString(),
+                    'payment_date' => now()->toISOString(),
+                ]),
             ]);
 
             $this->command->info("   ✅ Order Created:");
             $this->command->info("      ├─ Order Number: {$order->order_number}");
             $this->command->info("      ├─ Order ID: {$order->id}");
-            $this->command->info("      ├─ Status: {$order->payment_status}");
+            $this->command->info("      ├─ Payment Status: {$order->payment_status}");
+            $this->command->info("      ├─ Order Status: {$order->order_status}");
+            $this->command->info("      ├─ Has Items: ✅");
+            $this->command->info("      ├─ Has Payment: ✅");
             $this->command->info("      └─ Amount: Rp " . number_format($order->total_amount, 0, ',', '.'));
 
             // Create Digital Invitation

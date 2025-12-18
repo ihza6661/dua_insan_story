@@ -47,6 +47,19 @@ class Order extends Model
 
     public const STATUS_REFUNDED = 'Refunded';
 
+    // Valid payment status constants
+    public const PAYMENT_STATUS_PENDING = 'pending';
+
+    public const PAYMENT_STATUS_PAID = 'paid';
+
+    public const PAYMENT_STATUS_PARTIALLY_PAID = 'partially_paid';
+
+    public const PAYMENT_STATUS_FAILED = 'failed';
+
+    public const PAYMENT_STATUS_CANCELLED = 'cancelled';
+
+    public const PAYMENT_STATUS_REFUNDED = 'refunded';
+
     /**
      * Get all valid order statuses.
      */
@@ -68,6 +81,21 @@ class Order extends Model
         ];
     }
 
+    /**
+     * Get all valid payment statuses.
+     */
+    public static function getValidPaymentStatuses(): array
+    {
+        return [
+            self::PAYMENT_STATUS_PENDING,
+            self::PAYMENT_STATUS_PAID,
+            self::PAYMENT_STATUS_PARTIALLY_PAID,
+            self::PAYMENT_STATUS_FAILED,
+            self::PAYMENT_STATUS_CANCELLED,
+            self::PAYMENT_STATUS_REFUNDED,
+        ];
+    }
+
     protected $fillable = [
         'customer_id',
         'promo_code_id',
@@ -82,6 +110,7 @@ class Order extends Model
         'courier',
         'tracking_number',
         'snap_token',
+        'payment_option',
         // Note: order_status and payment_status removed from fillable for security
     ];
 
@@ -197,7 +226,7 @@ class Order extends Model
         }
 
         // Fallback: compute on-demand (triggers query)
-        $paid = $this->payments()->where('status', 'paid')->sum('amount');
+        $paid = $this->payments()->where('status', Payment::STATUS_PAID)->sum('amount');
 
         return $this->total_amount - $paid;
     }
@@ -214,7 +243,63 @@ class Order extends Model
         }
 
         // Fallback: compute on-demand (triggers query)
-        return $this->payments()->where('status', 'paid')->sum('amount');
+        return $this->payments()->where('status', Payment::STATUS_PAID)->sum('amount');
+    }
+
+    /**
+     * Get formatted payment method from the first successful payment.
+     * Extracts payment method details from Midtrans raw_response.
+     */
+    public function getFormattedPaymentMethod(): ?string
+    {
+        $payment = $this->payments()
+            ->whereIn('status', [Payment::STATUS_PAID])
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if (! $payment) {
+            return null;
+        }
+
+        $method = $payment->payment_gateway;
+
+        if (! empty($payment->raw_response) && isset($payment->raw_response['payment_type'])) {
+            $type = $payment->raw_response['payment_type'];
+            $method = ucwords(str_replace('_', ' ', $type));
+
+            if ($type === 'bank_transfer') {
+                if (isset($payment->raw_response['va_numbers'][0]['bank'])) {
+                    $method .= ' - '.strtoupper($payment->raw_response['va_numbers'][0]['bank']);
+                } elseif (isset($payment->raw_response['permata_va_number'])) {
+                    $method .= ' - PERMATA';
+                }
+            } elseif ($type === 'cstore' && isset($payment->raw_response['store'])) {
+                $method .= ' - '.ucfirst($payment->raw_response['store']);
+            } elseif ($type === 'echannel' && isset($payment->raw_response['biller_code'])) {
+                $method .= ' - Mandiri Bill Payment';
+            } elseif ($type === 'gopay') {
+                $method = 'GoPay';
+            } elseif ($type === 'shopeepay') {
+                $method = 'ShopeePay';
+            } elseif ($type === 'qris') {
+                $method = 'QRIS';
+            }
+        }
+
+        return $method;
+    }
+
+    /**
+     * Get formatted payment option label in Indonesian.
+     */
+    public function getFormattedPaymentOption(): string
+    {
+        return match ($this->payment_option) {
+            'full' => 'Pembayaran Penuh',
+            'dp' => 'Down Payment (DP 50%)',
+            'final' => 'Pelunasan Akhir',
+            default => ucfirst($this->payment_option ?? 'Tidak Diketahui'),
+        };
     }
 
     // ========== QUERY SCOPES ==========

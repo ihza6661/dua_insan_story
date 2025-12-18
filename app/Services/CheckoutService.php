@@ -45,7 +45,7 @@ class CheckoutService
 
         return DB::transaction(function () use ($request, $user, $cart) {
             $validated = $request->validated();
-            
+
             // Resolve shipping address from address_id or use manual entry
             $shippingAddress = $validated['shipping_address'] ?? null;
             if (isset($validated['address_id'])) {
@@ -54,10 +54,10 @@ class CheckoutService
                     $shippingAddress = $address->full_address;
                 }
             }
-            
+
             // Override shipping address in validated data for CheckoutData
             $validated['shipping_address'] = $shippingAddress ?? 'Digital Product - No Shipping Required';
-            
+
             $checkoutData = CheckoutData::fromArray($validated);
 
             // Handle prewedding photo upload
@@ -100,7 +100,8 @@ class CheckoutService
                 shippingService: $allDigital ? null : $checkoutData->shippingService,
                 courier: $allDigital ? null : $checkoutData->courier,
                 promoCodeId: $promoCodeId,
-                discountAmount: $discountAmount
+                discountAmount: $discountAmount,
+                paymentOption: $checkoutData->paymentOption
             );
 
             // Create invitation details
