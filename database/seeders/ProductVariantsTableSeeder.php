@@ -94,9 +94,15 @@ class ProductVariantsTableSeeder extends Seeder
             ],
         ]);
         
-        // Reset auto-increment to continue from the highest ID
-        $maxId = \DB::table('product_variants')->max('id') ?? 0;
-        \DB::statement("ALTER TABLE product_variants AUTO_INCREMENT = " . ($maxId + 1));
+        // Reset auto-increment/sequence to continue from the highest ID
+        $maxId = DB::table('product_variants')->max('id') ?? 0;
+        $driver = DB::connection()->getDriverName();
+        
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE product_variants AUTO_INCREMENT = " . ($maxId + 1));
+        } elseif ($driver === 'pgsql') {
+            DB::statement("SELECT setval(pg_get_serial_sequence('product_variants', 'id'), ?, false)", [$maxId + 1]);
+        }
         
         Schema::enableForeignKeyConstraints();
 
