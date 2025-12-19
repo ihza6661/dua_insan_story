@@ -50,7 +50,8 @@
             "@php artisan package:discover --ansi"
         ],
         "post-install-cmd": [
-            "@php artisan storage:link --force"
+            "@php artisan storage:link --force",
+            "@php -r \"!is_dir('storage/fonts') && mkdir('storage/fonts', 0775, true);\""
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
